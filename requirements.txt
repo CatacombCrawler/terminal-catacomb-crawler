@@ -1,0 +1,11 @@
+# Terminal Dungeon Crawler Dependencies
+
+# Core terminal handling and colors
+blessed>=1.20.0
+
+# Development dependencies (optional)
+# Uncomment these if you want development tools:
+# pytest>=7.0.0          # For unit testing
+# black>=22.0.0          # Code formatting
+# flake8>=4.0.0          # Code linting
+# mypy>=0.950            # Type checking
