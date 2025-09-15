@@ -15,6 +15,7 @@ class Player:
         self.hp = self.max_hp
         self.attack = 10
         self.defense = 5
+        self.speed = 12  # For initiative in combat
         self.level = 1
         self.exp = 0
         self.exp_to_next = 100
@@ -35,6 +36,10 @@ class Player:
         """Move player to new position"""
         self.x = new_x
         self.y = new_y
+        
+    def is_alive(self):
+        """Check if player is still alive"""
+        return self.hp > 0
         
     def take_damage(self, damage):
         """Player takes damage"""
@@ -66,10 +71,32 @@ class Player:
         
         # Increase stats
         self.max_hp += 20
-        self.hp = self.max_hp  # Full heal on level up
+        self.hp = self.max_hp
         self.attack += 3
         self.defense += 2
+        self.speed += 1  # Slightly faster each level
         
+    def attack_enemy(self, enemy):
+        """Attack an enemy"""
+        import random
+        
+        damage = self.attack + random.randint(-2, 3)  # Add some randomness
+        damage = max(1, damage)  # Minimum 1 damage
+        
+        enemy_died = enemy.take_damage(damage)
+        
+        if enemy_died:
+            self.gain_exp(enemy.exp_reward)
+            
+        return {
+            "type": "combat",
+            "attacker": self.name,
+            "target": enemy.name,
+            "damage": damage,
+            "enemy_died": enemy_died,
+            "exp_gained": enemy.exp_reward if enemy_died else 0
+        }
+    
     def add_item(self, item):
         """Add item to inventory"""
         if len(self.inventory) < self.max_inventory:
