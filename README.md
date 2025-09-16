@@ -1,6 +1,6 @@
-# Terminal Dungeon Crawler
+# Terminal Catacomb Crawler
 
-A classic roguelike dungeon crawler game built for the terminal using Python and the `blessed` library.
+A classic roguelike catacomb/dungeons crawler game built for the terminal using Python and the `blessed` library.
 
 ## Table of Contents
 
@@ -136,7 +136,7 @@ black game/ main.py
 
 ## Roadmap
 
-- [ ] **Combat System** - Enemies and turn-based combat
+- [X] **Combat System** - Enemies and turn-based combat
 - [ ] **Items & Equipment** - Weapons, armor, and consumables
 - [ ] **Multiple Levels** - Procedural dungeon generation
 - [ ] **Save/Load** - Game state persistence

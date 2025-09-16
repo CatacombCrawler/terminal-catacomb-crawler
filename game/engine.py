@@ -23,6 +23,15 @@ class GameEngine:
         self.combat_manager = CombatManager()
         self.combat_messages = []
         
+        # Combat tracking
+        self.combat_stats = {
+            "starting_hp": 0,
+            "starting_level": 0,
+            "starting_exp": 0,
+            "exp_gained": 0,
+            "enemies_defeated": 0
+        }
+        
     def initialize(self):
         """Initialize game components"""
         # Create game objects
@@ -119,6 +128,7 @@ class GameEngine:
         if enemy:
             # Start combat!
             nearby_enemies = self.get_nearby_enemies(self.player.x, self.player.y, radius=1)
+            self.start_combat_tracking()
             combat_start_msg = self.combat_manager.start_combat(self.player, nearby_enemies)
             self.combat_messages.append({"type": "system", "message": combat_start_msg})
             self.needs_render = True
@@ -190,6 +200,11 @@ class GameEngine:
                 turn_msg = self.combat_manager.end_turn()
                 if turn_msg:
                     self.combat_messages.append({"type": "system", "message": turn_msg})
+                    
+                    # Check if combat ended
+                    if not self.combat_manager.in_combat:
+                        self.end_combat_tracking()
+                        
                     self.needs_render = True
             
     def spawn_initial_enemies(self):
@@ -224,6 +239,38 @@ class GameEngine:
         self.terminal.inkey()
         self.running = False
         
+    def start_combat_tracking(self):
+        """Initialize combat statistics tracking"""
+        self.combat_stats = {
+            "starting_hp": self.player.hp,
+            "starting_level": self.player.level,
+            "starting_exp": self.player.exp,
+            "exp_gained": 0,
+            "enemies_defeated": 0
+        }
+        
+    def end_combat_tracking(self):
+        """Finalize combat stats and show summary"""
+        # Calculate final stats
+        health_lost = self.combat_stats["starting_hp"] - self.player.hp
+        self.combat_stats["exp_gained"] = self.player.exp - self.combat_stats["starting_exp"]
+        level_up = self.player.level > self.combat_stats["starting_level"]
+        victory = self.player.hp > 0
+        
+        # Prepare summary data
+        summary = {
+            "victory": victory,
+            "health_lost": health_lost,
+            "exp_gained": self.combat_stats["exp_gained"],
+            "enemies_defeated": self.combat_stats["enemies_defeated"],
+            "level_up": level_up,
+            "new_level": self.player.level if level_up else self.combat_stats["starting_level"]
+        }
+        
+        # Show combat summary screen
+        self.ui.show_combat_summary(summary, self.player)
+        self.needs_render = True
+        
     def player_combat_action(self, action_name):
         """Execute a player combat action"""
         if action_name not in COMBAT_ACTIONS:
@@ -246,10 +293,18 @@ class GameEngine:
         if result["success"]:
             self.combat_messages.append({"type": "combat", **result})
             
+            # Track enemy defeats
+            if result.get("target_died", False):
+                self.combat_stats["enemies_defeated"] += 1
+            
             # End player turn
             turn_msg = self.combat_manager.end_turn()
             if turn_msg:
                 self.combat_messages.append({"type": "system", "message": turn_msg})
+                
+                # Check if combat ended
+                if not self.combat_manager.in_combat:
+                    self.end_combat_tracking()
         else:
             self.combat_messages.append({"type": "system", "message": result.get("message", "Action failed!")})
             
@@ -297,6 +352,7 @@ class GameEngine:
         adjacent_enemies = self.get_nearby_enemies(self.player.x, self.player.y, radius=1)
         if adjacent_enemies:
             # Start combat with adjacent enemies
+            self.start_combat_tracking()
             combat_start_msg = self.combat_manager.start_combat(self.player, adjacent_enemies)
             self.combat_messages.append({"type": "system", "message": combat_start_msg})
             self.needs_render = True
