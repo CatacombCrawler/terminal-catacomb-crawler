@@ -255,8 +255,30 @@ class UI:
                     print(f"  {self.terminal.green(text)}")
                 elif "defender" in msg:  # Defend action
                     print(f"  {self.terminal.blue(msg['message'])}")
-                else:  # Enemy attacking player
-                    text = f"{msg['attacker']} attacks you for {msg['damage']} damage!"
+                else:  # Enemy attacking player - use rich monster attack info
+                    if msg.get("hit", True):
+                        # Check for rich attack information from monster system
+                        if msg.get("attack_name") and msg.get("description"):
+                            damage = msg.get('damage', 0)
+                            if damage > 0:
+                                text = f"{msg['attacker']} uses {msg['attack_name']} - {msg.get('description', 'attacks')} ({damage} damage)"
+                            else:
+                                text = f"{msg['attacker']} uses {msg['attack_name']} - {msg.get('description', 'attacks')} but deals no damage!"
+                        else:
+                            damage = msg.get('damage', 0)
+                            if damage > 0:
+                                text = f"{msg['attacker']} attacks you for {damage} damage!"
+                            else:
+                                text = f"{msg['attacker']} attacks you but deals no damage!"
+                        
+                        # Add special effects description
+                        if msg.get("special_effects"):
+                            effect_type = msg["special_effects"].get("type", "")
+                            if effect_type:
+                                text += f" [Special: {effect_type.title()}]"
+                    else:
+                        text = f"{msg['attacker']} misses completely!"
+                    
                     if msg.get("player_died"):
                         text += " You have fallen!"
                     print(f"  {self.terminal.red(text)}")

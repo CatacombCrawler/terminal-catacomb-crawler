@@ -1,11 +1,8 @@
 """
 Player Character - Handles player stats, inventory, and actions
 """
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'items'))
 
-from items.items import Equipment
+from .items.items import Equipment
 
 class Player:
     """Player character class"""

@@ -184,36 +184,65 @@ class CombatAction:
         """Execute an attack action"""
         if not target or not target.is_alive():
             return {"success": False, "message": "Invalid target"}
+        
+        # Check if attacker is a monster with advanced attack system
+        if hasattr(attacker, 'attack_player') and hasattr(attacker, 'data'):
+            # Use monster's sophisticated attack system
+            monster_attack_result = attacker.attack_player(target)
             
-        # Calculate damage with potential modifiers
-        base_damage = attacker.attack
-        damage_roll = random.randint(-2, 3)
-        
-        # Future expansion points:
-        # - Weapon bonuses: base_damage += attacker.weapon.damage if attacker.weapon
-        # - Critical hits: if random.randint(1, 20) >= 18: damage *= 2
-        # - Status effects: if attacker.has_status("rage"): damage += 5
-        
-        total_damage = max(1, base_damage + damage_roll)
-        
-        # Apply damage
-        target_died = target.take_damage(total_damage)
-        
-        # Handle experience gain for player
-        exp_gained = 0
-        if hasattr(attacker, 'gain_exp') and target_died and hasattr(target, 'exp_reward'):
-            attacker.gain_exp(target.exp_reward)
-            exp_gained = target.exp_reward
+            # Handle experience gain for player targets
+            exp_gained = 0
+            if hasattr(target, 'gain_exp') and monster_attack_result.get('player_died') and hasattr(attacker, 'exp_reward'):
+                target.gain_exp(attacker.exp_reward)
+                exp_gained = attacker.exp_reward
             
-        return {
-            "success": True,
-            "action": "attack",
-            "attacker": attacker.name if hasattr(attacker, 'name') else "Unknown",
-            "target": target.name if hasattr(target, 'name') else "Enemy",
-            "damage": total_damage,
-            "target_died": target_died,
-            "exp_gained": exp_gained
-        }
+            # Convert monster attack result to combat system format
+            # Note: We don't include "target" key for monster attacks to ensure UI
+            # properly identifies them as enemy attacks for rich formatting
+            return {
+                "success": True,
+                "action": "attack",
+                "attacker": monster_attack_result.get("attacker", attacker.name if hasattr(attacker, 'name') else "Unknown"),
+                "attack_name": monster_attack_result.get("attack_name", "Attack"),
+                "damage": monster_attack_result.get("damage", 0),
+                "hit": monster_attack_result.get("hit", True),
+                "description": monster_attack_result.get("description", ""),
+                "target_died": monster_attack_result.get("player_died", False),
+                "special_effects": monster_attack_result.get("special_effects"),
+                "exp_gained": exp_gained
+            }
+        else:
+            # Use basic attack system for player or non-monster entities
+            # Calculate damage with potential modifiers
+            base_damage = attacker.attack
+            damage_roll = random.randint(-2, 3)
+            
+            # Future expansion points:
+            # - Weapon bonuses: base_damage += attacker.weapon.damage if attacker.weapon
+            # - Critical hits: if random.randint(1, 20) >= 18: damage *= 2
+            # - Status effects: if attacker.has_status("rage"): damage += 5
+            
+            total_damage = max(1, base_damage + damage_roll)
+            
+            # Apply damage
+            target_died = target.take_damage(total_damage)
+            
+            # Handle experience gain for player
+            exp_gained = 0
+            if hasattr(attacker, 'gain_exp') and target_died and hasattr(target, 'exp_reward'):
+                attacker.gain_exp(target.exp_reward)
+                exp_gained = target.exp_reward
+                
+            return {
+                "success": True,
+                "action": "attack",
+                "attacker": attacker.name if hasattr(attacker, 'name') else "Unknown",
+                "target": target.name if hasattr(target, 'name') else "Enemy",
+                "damage": total_damage,
+                "hit": True,
+                "target_died": target_died,
+                "exp_gained": exp_gained
+            }
         
     def execute_defend(self, defender):
         """Execute a defend action - reduces incoming damage next turn"""

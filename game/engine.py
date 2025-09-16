@@ -7,7 +7,7 @@ from blessed import Terminal
 from .player import Player
 from .level import Level
 from .ui import UI
-from .enemy import EnemyManager
+from .monsters.monsters import MonsterManager as EnemyManager
 from .combat import CombatManager, COMBAT_ACTIONS
 from .character_creation import CharacterCreator
 
@@ -484,10 +484,22 @@ class GameEngine:
                 # Make sure enemy isn't too close to player
                 distance = abs(x - self.player.x) + abs(y - self.player.y)
                 if distance > 8:  # At least 8 tiles away
-                    # Randomly choose enemy type
-                    enemy_types = ["goblin", "goblin", "orc", "skeleton"]  # More goblins
-                    enemy_type = random.choice(enemy_types)
-                    self.enemy_manager.spawn_enemy(x, y, enemy_type)
+                    # Dynamic monster spawning based on player level
+                    if self.player.level <= 3:
+                        # Early game: spawn easy monsters
+                        self.enemy_manager.spawn_random_monster(x, y, "easy")
+                    elif self.player.level <= 6:
+                        # Mid game: mix of easy and medium monsters
+                        difficulty = random.choice(["easy", "easy", "medium"])  # More easy
+                        self.enemy_manager.spawn_random_monster(x, y, difficulty)
+                    elif self.player.level <= 10:
+                        # Late game: medium and hard monsters
+                        difficulty = random.choice(["medium", "medium", "hard"])  # More medium
+                        self.enemy_manager.spawn_random_monster(x, y, difficulty)
+                    else:
+                        # End game: hard and boss monsters
+                        difficulty = random.choice(["hard", "boss"])
+                        self.enemy_manager.spawn_random_monster(x, y, difficulty)
                     break
                 attempts += 1
                 
@@ -583,8 +595,9 @@ class GameEngine:
         """Execute an enemy combat action"""
         # Simple AI: always attack player if alive
         if self.player.hp > 0:
+            # Use the combat system's execute_attack method directly to get rich monster attacks
             action = COMBAT_ACTIONS["attack"]
-            result = action.execute(enemy, self.player)
+            result = action.execute_attack(enemy, self.player)
             
             if result["success"]:
                 return {"type": "combat", **result}
