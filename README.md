@@ -1,6 +1,8 @@
-# Terminal Catacomb Crawler
+# 🐾 Catacomb Crawler
 
-A classic roguelike catacomb/dungeons crawler game built for the terminal using Python and the `blessed` library.
+A terminal-based roguelike game built in Python. Explore dungeons, avoid monsters, and navigate using a minimalist UI designed for clarity and immersion.
+
+---
 
 ## Table of Contents
 
@@ -22,13 +24,16 @@ A classic roguelike catacomb/dungeons crawler game built for the terminal using 
 
 ## Features
 
-- **Classic ASCII Graphics**: Retro-style dungeon visualization with colored tiles
-- **Smooth Movement**: Navigate with WASD keys or arrow keys
-- **Real-time Rendering**: Efficient viewport-based rendering system
-- **Player Stats**: Health, experience, level, and combat stats tracking
-- **Inventory System**: Basic inventory management (expandable)
-- **Cross-platform**: Works on Windows, macOS, and Linux terminals
+- 🧾 **Scrolling Message Log** — Displays recent actions and events  
+- 🗺️ **Minimap** — Shows dungeon layout and player position  
+- ❓ **Help Screen** — Lists keybindings and controls  
+- 🧍 **Modular Design** — Clean separation of player, monsters, items, and UI  
+- 🧠 **Expandable Engine** — Ready for future combat, leveling, and item systems  
+- 🎨 **Classic ASCII Graphics** — Retro-style dungeon visualization  
+- 📦 **Inventory System** — Basic inventory management  
+- 💻 **Cross-platform** — Works on Windows, macOS, and Linux terminals  
 
+---
 ## Screenshots
 
 ```
@@ -78,6 +83,12 @@ Controls: WASD/Arrows=Move | Q=Quit | I=Inventory
    ```bash
    pip install -r requirements.txt
    ```
+
+    OR Manually
+   pip install bearlibterminal
+   pip install tcod
+ 
+   
 
 ## How to Play
 
@@ -162,5 +173,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ASCII art and terminal graphics tradition
 
 ---
+
 
 *Happy dungeon crawling!*
