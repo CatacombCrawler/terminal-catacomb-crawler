@@ -41,7 +41,26 @@ ITEMS = {
                 'level': 1,
                 'dexterity': 10
             }
-        }
+        },
+        'bronze_sword': {
+            'name': 'Bronze Sword',
+            'type': 'weapon',
+            'quality': 'normal',
+            'starting_item': False,
+            'description': 'A Bronze Sword.',
+            'symbol': '/',
+            'color': 'orange',
+            'stats': {
+                'attack': 17,
+                'defense': 0,
+                'speed': -6,
+                'hp': 0
+            },
+            'requirements': {
+                'level': 2,
+                'strength': 10
+            }
+        },
     },
     'armor': {
         'rusted_chest': {
