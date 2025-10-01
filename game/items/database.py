@@ -58,7 +58,79 @@ ITEMS = {
             },
             'requirements': {
                 'level': 2,
-                'strength': 10
+                'strength': 12
+            }
+        },'iron_bow': {
+            'name': 'Iron Bow',
+            'type': 'weapon',
+            'quality': 'normal',
+            'starting_item': False,
+            'description': 'A sturdy bow made from iron.',
+            'symbol': '}',
+            'color': 'blue',
+            'stats': {
+                'attack': 8,
+                'defense': 0,
+                'speed': 15,
+                'hp': 0
+            },
+            'requirements': {
+                'level': 3,
+                'dexterity': 14
+            }
+        },'silver_bow': {
+            'name': 'Silver Bow',
+            'type': 'weapon',
+            'quality': 'rare',
+            'starting_item': False,
+            'description': 'A sturdy bow made from silver.',
+            'symbol': '}',
+            'color': 'yellow',
+            'stats': {
+                'attack': 12,
+                'defense': 0,
+                'speed': 18,
+                'hp': 0
+            },
+            'requirements': {
+                'level': 5,
+                'dexterity': 16
+            }
+        },'master_sword': {
+            'name': 'Master Sword',
+            'type': 'weapon',
+            'quality': 'legendary',
+            'starting_item': False,
+            'description': 'A legendary sword wielded by a great hero.',
+            'symbol': '/',
+            'color': 'purple',
+            'stats': {
+                'attack': 25,
+                'defense': 0,
+                'speed': -6,
+                'hp': 0
+            },
+            'requirements': {
+                'level': 10,
+                'strength': 18
+            }
+        },'artemis_bow': {
+            'name': 'Artemis Bow',
+            'type': 'weapon',
+            'quality': 'legendary',
+            'starting_item': False,
+            'description': 'A legendary bow said to be favored by the goddess Artemis.',
+            'symbol': '}',
+            'color': 'purple',
+            'stats': {
+                'attack': 24,
+                'defense': 0,
+                'speed': 18,
+                'hp': 0
+            },
+            'requirements': {
+                'level': 10,
+                'dexterity': 20
             }
         },
     },
@@ -81,6 +153,42 @@ ITEMS = {
                 'level': 1,
                 'strength': 5
             }
+        },'iron_chest': {
+            'name': 'Iron Chestplate',
+            'type': 'armor',
+            'quality': 'normal',
+            'starting_item': True,
+            'description': 'Iron chestplate that offers good protection.',
+            'symbol': '[',
+            'color': 'white',
+            'stats': {
+                'attack': 0,
+                'defense': 20,
+                'speed': -3,
+                'hp': 35
+            },
+            'requirements': {
+                'level': 3,
+                'strength': 8
+            }
+        },'plate_armor': {
+            'name': 'Plate Armor',
+            'type': 'armor',
+            'quality': 'rare',
+            'starting_item': True,
+            'description': 'Heavy plate armor that offers excellent protection.',
+            'symbol': '[',
+            'color': 'yellow',
+            'stats': {
+                'attack': 0,
+                'defense': 20,
+                'speed': -3,
+                'hp': 35
+            },
+            'requirements': {
+                'level': 5,
+                'strength': 10
+            }
         }
     },
     'shields': {
@@ -101,6 +209,25 @@ ITEMS = {
             'requirements': {
                 'level': 1,
                 'strength': 3
+            }
+        },
+        'kite_shield': {
+            'name': 'Kite Shield',
+            'type': 'shield',
+            'quality': 'normal',
+            'starting_item': False,
+            'description': 'A sturdy wooden shield reinforced with iron bands.',
+            'symbol': 'K',
+            'color': 'blue',
+            'stats': {
+                'attack': 0,
+                'defense': 20,
+                'speed': -1,
+                'hp': 20
+            },
+            'requirements': {
+                'level': 3,
+                'strength': 5
             }
         }
     },
@@ -126,6 +253,28 @@ ITEMS = {
             },
             'requirements': {
                 'level': 1
+            }
+        },
+        'greater_health_potion': {
+            'name': 'Greater Health Potion',
+            'type': 'consumable',
+            'quality': 'rare',
+            'starting_item': False,
+            'description': 'A large red liquid that restores vitality.',
+            'symbol': '!',
+            'color': 'red',
+            'stats': {
+                'attack': 0,
+                'defense': 0,
+                'speed': 0,
+                'hp': 0
+            },
+            'effect': {
+                'type': 'heal',
+                'amount': 50
+            },
+            'requirements': {
+                'level': 3
             }
         }
     }
