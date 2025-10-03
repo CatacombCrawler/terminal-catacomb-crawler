@@ -11,14 +11,7 @@ from .monsters.monsters import MonsterManager as EnemyManager
 from .combat import CombatManager, COMBAT_ACTIONS
 from .character_creation import CharacterCreator
 from .level_up_ui import LevelUpUI
-
-import contextlib
-try:
-    import termios  # not available on windows
-    import tty
-except Exception:  # pragma: no cover
-    termios = None
-    tty = None
+from .terminal_utils import normal_input_mode
 
 class GameEngine:
     """Main game engine that handles the core game loop"""
@@ -159,7 +152,7 @@ class GameEngine:
                 print(self.terminal.clear)
                 print(f"{self.terminal.yellow}No stat points available to allocate.{self.terminal.normal}")
                 print("Gain experience and level up to earn more stat points!")
-                with self.normal_input_mode():
+                with normal_input_mode(self.terminal):
                     input("Press Enter to continue...")
                 self.needs_render = True
             return
@@ -174,48 +167,6 @@ class GameEngine:
         """Handle input during exploration (non-combat)"""
         # Movement keys
         new_x, new_y = self.player.x, self.player.y
-        
-    @contextlib.contextmanager
-    def normal_input_mode(self):
-        """temporarily enable cooked input with echo for blocking input()."""
-        # show cursor while the user types
-        try:
-            print(self.terminal.show_cursor, end="", flush=True)
-        except Exception:
-            pass
-
-        if termios is not None and hasattr(self.terminal, "_keyboard_fd") and self.terminal._keyboard_fd is not None:
-            fd = self.terminal._keyboard_fd
-            try:
-                saved_attrs = termios.tcgetattr(fd)
-                saved_line_buffered = getattr(self.terminal, "_line_buffered", True)
-
-                attrs = termios.tcgetattr(fd)
-                attrs[3] |= (termios.ICANON | termios.ECHO)
-                termios.tcsetattr(fd, termios.TCSANOW, attrs)
-
-                if hasattr(self.terminal, "_line_buffered"):
-                    self.terminal._line_buffered = True
-
-                yield
-            finally:
-                try:
-                    if tty is not None:
-                        tty.setcbreak(fd, termios.TCSANOW)
-                except Exception:
-                    try:
-                        termios.tcsetattr(fd, termios.TCSAFLUSH, saved_attrs)
-                    except Exception:
-                        pass
-                if hasattr(self.terminal, "_line_buffered"):
-                    self.terminal._line_buffered = saved_line_buffered
-        else:
-            yield
-
-        try:
-            print(self.terminal.hide_cursor, end="", flush=True)
-        except Exception:
-            pass
 
         if key.lower() == 'w' or key.code == self.terminal.KEY_UP:
             new_y -= 1

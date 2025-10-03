@@ -2,14 +2,7 @@
 Level Up UI - Interface for allocating stat points when leveling up
 """
 
-import contextlib
-
-try:
-    import termios
-    import tty
-except Exception:  # pragma: no cover
-    termios = None
-    tty = None
+from .terminal_utils import normal_input_mode
 
 
 class LevelUpUI:
@@ -28,7 +21,7 @@ class LevelUpUI:
             
             # Get user input
             try:
-                with self.normal_input_mode():
+                with normal_input_mode(self.terminal):
                     choice = input().strip()
                 original_choice = choice  # Keep the original for display
                 choice = choice.lower()   # Use lowercase for comparison
@@ -40,14 +33,14 @@ class LevelUpUI:
                     # Quit and save remaining points for later
                     print(f"{self.terminal.yellow}You chose: quit{self.terminal.normal}")
                     print("Saving remaining stat points for later...")
-                    with self.normal_input_mode():
+                    with normal_input_mode(self.terminal):
                         input("Press Enter to continue...")
                     break
                 elif choice == 'done' or choice == 'd':
                     # Finish allocation
                     print(f"{self.terminal.yellow}You chose: done{self.terminal.normal}")
                     print("Finishing stat allocation...")
-                    with self.normal_input_mode():
+                    with normal_input_mode(self.terminal):
                         input("Press Enter to continue...")
                     break
                 elif choice.isdigit():
@@ -69,20 +62,20 @@ class LevelUpUI:
                         else:
                             print(f"{self.terminal.red}✗ {message}{self.terminal.normal}")
                         
-                        with self.normal_input_mode():
+                        with normal_input_mode(self.terminal):
                             input("\nPress Enter to continue...")
                     else:
                         print(f"{self.terminal.red}✗ Invalid choice. Please enter 1-{len(stat_names)}{self.terminal.normal}")
-                        with self.normal_input_mode():
+                        with normal_input_mode(self.terminal):
                             input("Press Enter to continue...")
                 else:
                     print(f"{self.terminal.red}✗ Invalid input. Enter a number (1-9), 'done', or 'q' to quit{self.terminal.normal}")
-                    with self.normal_input_mode():
+                    with normal_input_mode(self.terminal):
                         input("Press Enter to continue...")
                     
             except (ValueError, KeyboardInterrupt):
                 print(f"\n{self.terminal.red}✗ Invalid input or interrupted{self.terminal.normal}")
-                with self.normal_input_mode():
+                with normal_input_mode(self.terminal):
                     input("Press Enter to continue...")
                 
         # Show completion message
@@ -90,7 +83,7 @@ class LevelUpUI:
             print(self.terminal.clear)
             print(f"{self.terminal.bold}{self.terminal.green}🎉 All stat points allocated! 🎉{self.terminal.normal}")
             print("\nYour character has grown stronger!")
-            with self.normal_input_mode():
+            with normal_input_mode(self.terminal):
                 input("Press Enter to continue...")
         
     def render_level_up_screen(self, player):
@@ -161,55 +154,6 @@ class LevelUpUI:
         print(f"\nRemaining points: {self.terminal.bold}{self.terminal.cyan}{player.stat_points}{self.terminal.normal}")
         print(f"Your choice: ", end="", flush=True)
         
-    @contextlib.contextmanager
-    def normal_input_mode(self):
-        """temporarily switch to cooked mode with echo for line input.
-        on platforms without termios (e.g., windows), this is a no-op except for cursor visibility.
-        """
-        # show cursor while the user types
-        try:
-            print(self.terminal.show_cursor, end="", flush=True)
-        except Exception:
-            pass
-
-        if termios is not None and hasattr(self.terminal, "_keyboard_fd") and self.terminal._keyboard_fd is not None:
-            fd = self.terminal._keyboard_fd
-            try:
-                # save current attributes
-                saved_attrs = termios.tcgetattr(fd)
-                saved_line_buffered = getattr(self.terminal, "_line_buffered", True)
-
-                # enable canonical mode and echo (cooked mode)
-                attrs = termios.tcgetattr(fd)
-                attrs[3] |= (termios.ICANON | termios.ECHO)
-                termios.tcsetattr(fd, termios.TCSANOW, attrs)
-
-                if hasattr(self.terminal, "_line_buffered"):
-                    self.terminal._line_buffered = True
-
-                yield
-            finally:
-                # restore cbreak mode if possible
-                try:
-                    if tty is not None:
-                        tty.setcbreak(fd, termios.TCSANOW)
-                except Exception:
-                    # best-effort; fall back to restoring saved attrs
-                    try:
-                        termios.tcsetattr(fd, termios.TCSAFLUSH, saved_attrs)
-                    except Exception:
-                        pass
-                if hasattr(self.terminal, "_line_buffered"):
-                    self.terminal._line_buffered = saved_line_buffered
-        else:
-            # platform without termios; do nothing special
-            yield
-        # hide cursor again
-        try:
-            print(self.terminal.hide_cursor, end="", flush=True)
-        except Exception:
-            pass
-
     def get_stat_effects(self, stat_name, player):
         """Get a brief description of what derived stats this main stat affects"""
         effects = []
