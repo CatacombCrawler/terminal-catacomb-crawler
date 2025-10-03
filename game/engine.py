@@ -152,8 +152,9 @@ class GameEngine:
                 print(self.terminal.clear)
                 print(f"{self.terminal.yellow}No stat points available to allocate.{self.terminal.normal}")
                 print("Gain experience and level up to earn more stat points!")
-                with normal_input_mode(self.terminal):
-                    input("Press Enter to continue...")
+                print("Press Enter to continue...")
+                # use inkey so it works under cbreak on all platforms
+                self.terminal.inkey()
                 self.needs_render = True
             return
             

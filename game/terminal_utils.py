@@ -56,3 +56,35 @@ def normal_input_mode(terminal):
         print(terminal.hide_cursor, end="", flush=True)
     except Exception:
         pass
+
+
+def read_line_with_inkey(terminal, prompt: str = "") -> str:
+    """read a line visibly using terminal.inkey() while in cbreak.
+    supports backspace and enter. returns the entered string.
+    """
+    if prompt:
+        print(prompt, end="", flush=True)
+    buffer = ""
+    while True:
+        key = terminal.inkey()
+        # handle enter
+        if key.name == 'KEY_ENTER' or key == '\n' or key == '\r':
+            print()  # newline after submit
+            return buffer
+        # handle backspace
+        if key.name == 'KEY_BACKSPACE' or key == '\b' or key == '\x7f':
+            if buffer:
+                buffer = buffer[:-1]
+                print('\b \b', end="", flush=True)
+            continue
+        # handle escape -> treat as cancel/empty submit
+        if key.name == 'KEY_ESCAPE':
+            print()
+            return buffer
+        # accept printable characters
+        if str(key) and not key.is_sequence:
+            ch = str(key)
+            # basic guard against non-printable
+            if ch.isprintable():
+                buffer += ch
+                print(ch, end="", flush=True)
