@@ -11,6 +11,7 @@ from .monsters.monsters import MonsterManager as EnemyManager
 from .combat import CombatManager, COMBAT_ACTIONS
 from .character_creation import CharacterCreator
 from .level_up_ui import LevelUpUI
+from .terminal_utils import normal_input_mode
 
 
 # Sounds
@@ -189,7 +190,9 @@ class GameEngine:
                 print(self.terminal.clear)
                 print(f"{self.terminal.yellow}No stat points available to allocate.{self.terminal.normal}")
                 print("Gain experience and level up to earn more stat points!")
-                input("Press Enter to continue...")
+                print("Press Enter to continue...")
+                # use inkey so it works under cbreak on all platforms
+                self.terminal.inkey()
                 self.needs_render = True
             return
             
@@ -210,7 +213,7 @@ class GameEngine:
 
         # Movement keys
         new_x, new_y = self.player.x, self.player.y
-        
+
         if key.lower() == 'w' or key.code == self.terminal.KEY_UP:
             new_y -= 1
             

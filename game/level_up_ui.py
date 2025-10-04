@@ -2,6 +2,9 @@
 Level Up UI - Interface for allocating stat points when leveling up
 """
 
+from .terminal_utils import normal_input_mode, read_line_with_inkey
+
+
 class LevelUpUI:
     """Handles the level up interface for stat point allocation"""
     
@@ -18,7 +21,8 @@ class LevelUpUI:
             
             # Get user input
             try:
-                choice = input().strip()
+                # prefer inkey-based reader to avoid cbreak/cooked transitions
+                choice = read_line_with_inkey(self.terminal).strip()
                 original_choice = choice  # Keep the original for display
                 choice = choice.lower()   # Use lowercase for comparison
                 
@@ -29,13 +33,13 @@ class LevelUpUI:
                     # Quit and save remaining points for later
                     print(f"{self.terminal.yellow}You chose: quit{self.terminal.normal}")
                     print("Saving remaining stat points for later...")
-                    input("Press Enter to continue...")
+                    self.terminal.inkey()
                     break
                 elif choice == 'done' or choice == 'd':
                     # Finish allocation
                     print(f"{self.terminal.yellow}You chose: done{self.terminal.normal}")
                     print("Finishing stat allocation...")
-                    input("Press Enter to continue...")
+                    self.terminal.inkey()
                     break
                 elif choice.isdigit():
                     # User selected a stat by number
@@ -56,24 +60,29 @@ class LevelUpUI:
                         else:
                             print(f"{self.terminal.red}✗ {message}{self.terminal.normal}")
                         
-                        input("\nPress Enter to continue...")
+                        print("\nPress any key to continue...")
+                        self.terminal.inkey()
                     else:
                         print(f"{self.terminal.red}✗ Invalid choice. Please enter 1-{len(stat_names)}{self.terminal.normal}")
-                        input("Press Enter to continue...")
+                        print("Press any key to continue...")
+                        self.terminal.inkey()
                 else:
                     print(f"{self.terminal.red}✗ Invalid input. Enter a number (1-9), 'done', or 'q' to quit{self.terminal.normal}")
-                    input("Press Enter to continue...")
+                    print("Press any key to continue...")
+                    self.terminal.inkey()
                     
             except (ValueError, KeyboardInterrupt):
                 print(f"\n{self.terminal.red}✗ Invalid input or interrupted{self.terminal.normal}")
-                input("Press Enter to continue...")
+                print("Press any key to continue...")
+                self.terminal.inkey()
                 
         # Show completion message
         if player.stat_points == 0:
             print(self.terminal.clear)
             print(f"{self.terminal.bold}{self.terminal.green}🎉 All stat points allocated! 🎉{self.terminal.normal}")
             print("\nYour character has grown stronger!")
-            input("Press Enter to continue...")
+            print("Press any key to continue...")
+            self.terminal.inkey()
         
     def render_level_up_screen(self, player):
         """Render the level up interface"""
