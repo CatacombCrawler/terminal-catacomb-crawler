@@ -13,8 +13,17 @@ class CharacterCreator:
     def create_character(self, player):
         """Run the character creation process"""
         print(self.terminal.clear)
-        self.show_welcome()
         
+        # Get player name
+        player_name = self.get_player_name()
+        if not player_name:
+            return False
+        player.name = player_name
+        
+        # Show equipment info
+        print(self.terminal.clear)
+        self.show_equipment_info()
+
         # Get starting items available for selection
         starting_items = ItemManager.get_starting_items()
         
@@ -34,11 +43,55 @@ class CharacterCreator:
                 return False
         
         return False
-        
-    def show_welcome(self):
-        """Show welcome message"""
+    
+    def get_player_name(self):
+        """Get the player's chosen hero name"""
         print(self.terminal.bold + "🏰 Welcome to Terminal Dungeon Crawler! 🏰" + self.terminal.normal)
         print()
+        print(self.terminal.bold + "⚔️  Create Your Hero ⚔️" + self.terminal.normal)
+        print()
+        print("Every hero needs a name to be remembered by...")
+        print()
+        
+        while True:
+            try:
+                print("Enter your hero's name: ", end="", flush=True)
+                name = input().strip()
+                
+                # Validate name
+                if not name:
+                    print("Your hero needs a name! Please enter something.")
+                    print()
+                    continue
+                    
+                if len(name) > 20:
+                    print("That name is too long! Please keep it under 20 characters.")
+                    print()
+                    continue
+                    
+                if len(name) < 2:
+                    print("Please enter a name with at least 2 characters.")
+                    print()
+                    continue
+                
+                # Confirm the name
+                print()
+                print(f"Your hero shall be known as: {self.terminal.bold}{name}{self.terminal.normal}")
+                confirm = input("Is this correct? (y/n): ").strip().lower()
+                
+                if confirm in ['y', 'yes']:
+                    print()
+                    return name
+                else:
+                    print()
+                    print("Let's try again...")
+                    print()
+                    
+            except KeyboardInterrupt:
+                print()
+                return None
+        
+    def show_equipment_info(self):
         print("Before venturing into the dangerous catacombs, you must choose")
         print("your starting equipment. Each item grants different bonuses:")
         print()
@@ -48,7 +101,7 @@ class CharacterCreator:
         print("  • Speed: Affects turn order in combat")
         print("  • HP: Increases your maximum health")
         print()
-        
+    
     def select_starting_item(self, starting_items):
         """Let player select their starting item"""
         # Create a flat list of all starting items with their categories
