@@ -209,7 +209,8 @@ __marimo__/
 # Virtual environment
 venv/
 env/
-.env
+.env/
+.venv
 
 # Python cache
 __pycache__/
@@ -226,3 +227,4 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+
