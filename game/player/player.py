@@ -9,7 +9,7 @@ from .stats_system import StatsSystem, LEGACY_ALIASES
 class Player:
     """Player character class"""
 
-    def __init__(self, x=0, y=0, archetype='warrior', allocated_main=None):
+    def __init__(self, x=0, y=0, archetype='warrior', allocated_main=None, name="Hero"):
         # Position
         self.x = x
         self.y = y
@@ -60,7 +60,7 @@ class Player:
 
         # Display
         self.symbol = '@'
-        self.name = "Hero"
+        self.name = name
 
         # Inventory and Equipment
         self.inventory = []

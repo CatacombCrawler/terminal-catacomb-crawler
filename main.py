@@ -17,8 +17,10 @@ def main():
     try:
         print("🏰 Welcome to Terminal Dungeon Crawler! 🏰")
         print("Initializing game...")
+
+        heroName = input("Enter Your Hero's Name: ")
         
-        game = GameEngine()
+        game = GameEngine(hero_name=heroName)
         game.run()
         
     except KeyboardInterrupt:

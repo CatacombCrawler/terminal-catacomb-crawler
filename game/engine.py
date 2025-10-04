@@ -15,7 +15,7 @@ from .level_up_ui import LevelUpUI
 class GameEngine:
     """Main game engine that handles the core game loop"""
     
-    def __init__(self):
+    def __init__(self, hero_name=None):
         self.terminal = Terminal()
         self.running = False
         self.player = None
@@ -25,6 +25,7 @@ class GameEngine:
         self.combat_manager = CombatManager()
         self.combat_messages = []
         self.character_creator = None
+        self.hero_name = hero_name        
         
         # Door room system
         self.door_rooms = {}  # Dictionary mapping door positions to DoorRoom objects
@@ -50,7 +51,7 @@ class GameEngine:
         self.character_creator = CharacterCreator(self.terminal)
         
         # Create player and run character creation
-        self.player = Player(x=5, y=5)
+        self.player = Player(x=5, y=5, name=self.hero_name or "Hero")
         
         # Run character creation process
         if not self.character_creator.create_character(self.player):
