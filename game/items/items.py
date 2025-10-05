@@ -3,6 +3,7 @@ Item Classes - Item objects and management
 """
 
 from .database import ITEMS, ITEM_QUALITIES, ITEM_TYPES
+from constants import Constants as GAME_CONSTANTS
 
 class Item:
     """Base item class"""
@@ -141,6 +142,14 @@ class ItemManager:
                     result[category][item_id] = item_data
                     
         return result
+
+    @staticmethod
+    def get_items_by_id(_id):
+        """Get all items of a specific id"""
+        for category, items in ITEMS.items():
+            for item_id, item_data in items.items():
+                if item_id == _id:
+                    return Item(_id)
         
     @staticmethod
     def item_exists(item_id, category=None):
@@ -152,6 +161,20 @@ class ItemManager:
                 if item_id in cat_items:
                     return True
         return False
+
+    @staticmethod
+    def load(player_inventory, player):
+        """
+        Core method to load player inventory from json file
+        :param player_inventory: existing player inventory
+        :param player: player instance
+        """
+        starting_items = ItemManager.get_starting_items()
+        for item in player_inventory:
+            for item_type in starting_items:
+                if starting_items[item_type] is not None and item in starting_items[item_type]:
+                    item_object = ItemManager.get_items_by_id(item)
+                    player.inventory.append(item_object)
 
 
 class Equipment:
@@ -255,3 +278,16 @@ class Equipment:
                     total_bonuses[stat] += bonus
                     
         return total_bonuses
+
+    def load(self, player_equipments, player):
+        """
+        Core method to load equipments from json file
+        :param player_equipments: equipments loaded from json file
+        :param player: player instance
+        """
+        supported_equipment_types = [GAME_CONSTANTS.MAIN_HAND, GAME_CONSTANTS.OFF_HAND, GAME_CONSTANTS.CHEST]
+        if player_equipments:
+            for equipment_type in supported_equipment_types:
+                equipment = player_equipments.get(equipment_type, None)
+                if equipment:
+                    self.equip_item(ItemManager.get_items_by_id(equipment), player)

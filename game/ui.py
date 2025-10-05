@@ -416,7 +416,7 @@ class UI:
             else:
                 print("COMBAT - Enemy Turn: Wait for your turn...")
         else:
-            print("EXPLORATION: WASD/Arrows=Move | E=Interact | Q=Quit | I=Inventory | C=Stats | L=Level Up")
+            print("EXPLORATION: WASD/Arrows=Move | E=Interact | Q=Quit | I=Inventory | C=Stats | L=Level Up | Z=Save")
         
     def show_inventory(self, player):
         """Display player inventory (placeholder for now)"""

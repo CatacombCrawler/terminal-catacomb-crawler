@@ -4,7 +4,10 @@ Level - Dungeon generation and map management
 
 import random
 
-class Level:
+from base_class import BaseClass
+from constants import Constants as GAME_CONSTANTS
+
+class Level(BaseClass):
     """Represents a dungeon level with map generation"""
     
     def __init__(self, width=40, height=20):
@@ -13,17 +16,10 @@ class Level:
         self.tiles = []
         self.rooms = []
         
-        # Tile types
-        self.WALL = '#'
-        self.FLOOR = '.'
-        self.DOOR = '+'
-        self.STAIRS_DOWN = '>'
-        self.STAIRS_UP = '<'
-        
     def generate(self):
         """Generate a new dungeon level"""
         # Initialize with all walls
-        self.tiles = [[self.WALL for _ in range(self.width)] 
+        self.tiles = [[GAME_CONSTANTS.WALL for _ in range(self.width)]
                       for _ in range(self.height)]
         
         # Generate rooms
@@ -72,7 +68,7 @@ class Level:
         """Carve out a room in the dungeon"""
         for y in range(room.y1, room.y2 + 1):
             for x in range(room.x1, room.x2 + 1):
-                self.tiles[y][x] = self.FLOOR
+                self.tiles[y][x] = GAME_CONSTANTS.FLOOR
                 
     def connect_rooms(self):
         """Connect all rooms with corridors"""
@@ -99,13 +95,13 @@ class Level:
         """Carve a horizontal corridor"""
         for x in range(min(x1, x2), max(x1, x2) + 1):
             if 0 <= x < self.width and 0 <= y < self.height:
-                self.tiles[y][x] = self.FLOOR
+                self.tiles[y][x] = GAME_CONSTANTS.FLOOR
                 
     def carve_vertical_corridor(self, y1, y2, x):
         """Carve a vertical corridor"""
         for y in range(min(y1, y2), max(y1, y2) + 1):
             if 0 <= x < self.width and 0 <= y < self.height:
-                self.tiles[y][x] = self.FLOOR
+                self.tiles[y][x] = GAME_CONSTANTS.FLOOR
                 
     def add_doors(self):
         """Add doors to random floor positions"""
@@ -119,11 +115,11 @@ class Level:
                 x, y = self.get_random_floor_position()
                 
                 # Make sure it's actually a floor tile and not stairs
-                if (self.tiles[y][x] == self.FLOOR and 
-                    self.tiles[y][x] != self.STAIRS_DOWN and
-                    self.tiles[y][x] != self.STAIRS_UP):
+                if (self.tiles[y][x] == GAME_CONSTANTS.FLOOR and
+                    self.tiles[y][x] != GAME_CONSTANTS.STAIRS_DOWN and
+                    self.tiles[y][x] != GAME_CONSTANTS.STAIRS_UP):
                     # Place the door
-                    self.tiles[y][x] = self.DOOR
+                    self.tiles[y][x] = GAME_CONSTANTS.DOOR
                     break
                 
                 attempts += 1
@@ -134,19 +130,19 @@ class Level:
             # Put stairs down in the last room
             room = self.rooms[-1]
             x, y = room.center()
-            self.tiles[y][x] = self.STAIRS_DOWN
+            self.tiles[y][x] = GAME_CONSTANTS.STAIRS_DOWN
             
     def is_walkable(self, x, y):
         """Check if a position is walkable"""
         if not (0 <= x < self.width and 0 <= y < self.height):
             return False
-        return self.tiles[y][x] != self.WALL
+        return self.tiles[y][x] != GAME_CONSTANTS.WALL
         
     def get_tile(self, x, y):
         """Get the tile at position (x, y)"""
         if 0 <= x < self.width and 0 <= y < self.height:
             return self.tiles[y][x]
-        return self.WALL
+        return GAME_CONSTANTS.WALL
         
     def get_random_floor_position(self):
         """Get a random walkable position"""
@@ -163,6 +159,100 @@ class Level:
             return self.rooms[0].center()
         return 1, 1
 
+    def get_level_dict(self):
+        """
+        Core method to get level data as a dictionary
+        :return:
+        """
+        # Use this to exclude any object from putting in dictionary
+        exclusions = {"tiles"}
+        level_data = self._to_dict(self)
+        data = {k: v for k, v in level_data.items() if k not in exclusions}
+        r, c, floors, doors, stairs_down, stairs_up = self.get_level_components()
+        data = self.update_level_dict_data_by_components(data, r, c, floors, doors, stairs_down, stairs_up)
+        return data
+
+    def update_level_dict_data_by_components(self, data, r, c, floors, doors, stairs_down, stairs_up):
+        """
+        Core method to update level data by components
+        :param data: existing level data dictionary
+        :param r: tiles rows
+        :param c: tiles columns
+        :param floors: floor locations coordinates
+        :param doors: door locations coordinates
+        :param stairs_down: stairs down locations coordinates
+        :param stairs_up: stairs up locations coordinates
+        :return: updated level data dictionary
+        """
+        data.update({GAME_CONSTANTS.TILES: {GAME_CONSTANTS.X: r, GAME_CONSTANTS.Y: c}})
+        if floors:
+            data.update({GAME_CONSTANTS.FLOORS_COORD: floors})
+
+        if doors:
+            data.update({GAME_CONSTANTS.DOORS_COORD: doors})
+
+        if stairs_down:
+            data.update({GAME_CONSTANTS.STAIRS_DOWN_COORD: stairs_down})
+
+        if stairs_up:
+            data.update({GAME_CONSTANTS.STAIRS_UP_COORD: stairs_up})
+        return data
+
+    def get_level_components(self):
+        """
+        Core method to get level components such as tiles, floors, doors, stairs_down, stairs_up
+        :return: rows, cols, floors, doors, stairs_down, stairs_up
+        """
+        floors, doors, stairs_down, stairs_up = list(), list(), list(), list()
+        r, c = len(self.tiles), len(self.tiles[0])
+        for i in range(r):
+            for j in range(c):
+                if self.tiles[i][j] == GAME_CONSTANTS.FLOOR:
+                    floors.append([i, j])
+                elif self.tiles[i][j] == GAME_CONSTANTS.DOOR:
+                    doors.append([i, j])
+                elif self.tiles[i][j] == GAME_CONSTANTS.STAIRS_DOWN:
+                    stairs_down.append([i, j])
+                elif self.tiles[i][j] == GAME_CONSTANTS.STAIRS_UP:
+                    stairs_up.append([i, j])
+        return r, c, floors, doors, stairs_down, stairs_up
+
+    def set_level_components(self, data):
+        """
+        Core method to set level components from existing json
+        :param data: data from json for tiles, floors, doors, stairs_down, stairs_up
+        """
+        if data:
+            tiles = data.get(GAME_CONSTANTS.TILES, {})
+            x, y = tiles.get(GAME_CONSTANTS.X, 0), tiles.get(GAME_CONSTANTS.Y, 0)
+            self.tiles = [[GAME_CONSTANTS.WALL for _ in range(y)] for _ in range(x)]
+
+            layout_info = {GAME_CONSTANTS.FLOORS_COORD: GAME_CONSTANTS.FLOOR,
+                           GAME_CONSTANTS.DOORS_COORD: GAME_CONSTANTS.DOOR,
+                           GAME_CONSTANTS.STAIRS_DOWN_COORD: GAME_CONSTANTS.STAIRS_DOWN,
+                           GAME_CONSTANTS.STAIRS_UP_COORD: GAME_CONSTANTS.STAIRS_UP}
+
+            for key, value in layout_info.items():
+                existing_data = data.get(key, [])
+                for i, j in existing_data:
+                    self.tiles[i][j] = value
+
+    def set_rooms(self, data):
+        """
+        Core method to set room data from existing json
+        :param data: data from json
+        """
+        rooms_data = data.get(GAME_CONSTANTS.ROOMS, [])
+        for room in rooms_data:
+            x1, y1, x2, y2 = room.get('x1'), room.get('y1'), room.get('x2'), room.get('y2')
+            room_obj = Room(x1, y1, self.width, self.height)
+            room_obj.x2, room_obj.y2 = x2, y2
+            self.rooms.append(room_obj)
+
+    def load(self, data):
+        if data:
+            self.width = data.get(GAME_CONSTANTS.WIDTH, self.width)
+            self.height = data.get(GAME_CONSTANTS.HEIGHT, self.height)
 
 class Room:
     """Represents a rectangular room in the dungeon"""
@@ -180,7 +270,7 @@ class Room:
         return center_x, center_y
 
 
-class DoorRoom:
+class DoorRoom(BaseClass, Level):
     """Represents a small room accessible through doors"""
     
     def __init__(self, door_x, door_y):
@@ -288,3 +378,45 @@ class DoorRoom:
     def get_active_enemy_positions(self):
         """Get enemy positions that haven't been defeated"""
         return [(x, y) for (x, y) in self.enemy_positions if (x, y) not in self.defeated_enemy_positions]
+
+    def get_door_room_dict(self):
+        """Get the door room dict"""
+        exclusions = {"tiles", "defeated_enemy_positions"}
+        door_room_data = self._to_dict(self)
+        data = {k: v for k, v in door_room_data.items() if k not in exclusions}
+        data["defeated_enemy_positions"] = list(self.defeated_enemy_positions)
+        r, c, floors, doors, stairs_down, stairs_up = super().get_level_components()
+        data = super().update_level_dict_data_by_components(data, r, c, floors, doors, stairs_down, stairs_up)
+        return data
+
+    def load(self, data):
+        """
+        Core method that loads door room data from existing json
+        :param data: json data for door room
+        """
+        # Room properties
+        self.generated = data.get('generated', False)
+        self.room_size = data.get('room_size', '')
+        self.width = data.get(GAME_CONSTANTS.WIDTH, 0)
+        self.height = data.get(GAME_CONSTANTS.HEIGHT, 0)
+
+        super().set_level_components(data)
+
+        # Player spawn and exit positions
+        self.entrance_x = data.get('entrance_x', 1)
+        self.entrance_y = data.get('entrance_y', 0)
+        self.exit_x = data.get('exit_x', 0)
+        self.exit_y = data.get('exit_y', 0)
+
+        # Enemy spawn positions and state tracking
+        self.enemy_positions = []
+        enemy_positions = data.get('enemy_positions', [])
+        for pos in enemy_positions:
+            self.enemy_positions.append(tuple(pos))
+
+        self.enemies_spawned = data.get('enemies_spawned', False)
+
+        self.defeated_enemy_positions = set()
+        defeated_enemy_positions = data.get('defeated_enemy_positions', [])
+        for pos in defeated_enemy_positions:
+            self.defeated_enemy_positions.add(tuple(pos))

@@ -1,12 +1,13 @@
 """
 Player Character - Handles player stats, inventory, and actions
 """
-
+from base_class import BaseClass
+from ..items import ItemManager
 from ..items.items import Equipment
 from .player_database import PlayerDatabase
 from .stats_system import StatsSystem, LEGACY_ALIASES
 
-class Player:
+class Player(BaseClass):
     """Player character class"""
 
     def __init__(self, x=0, y=0, archetype='warrior', allocated_main=None):
@@ -577,3 +578,73 @@ class Player:
                 'quality': getattr(item, "quality", None),
             }
         return summary
+
+    def get_player_dict(self):
+        """
+        Core method to create player information as a dictionary
+        :return: dict of player information
+        """
+        exclusions = {"stats", "inventory", "equipment", "starting_item"}
+        player_data = self._to_dict(self)
+        data = {k: v for k, v in player_data.items() if k not in exclusions}
+        data['stats'] = self.get_detailed_stats()
+        data['starting_item'] = self.starting_item.item_id
+        data['inventory'] = [item.item_id for item in self.inventory]
+        data['equipments'] = {equip_key: equiv_val.item_id for equip_key, equiv_val in self.equipment.get_equipped_items().items()}
+        return data
+
+    def load(self, data):
+        """Load data into player
+        :param data: data from json file to load
+        """
+        self.x = data.get('x', 5)
+        self.y = data.get('y', 5)
+
+        self.archetype = data.get('archetype', 'warrior')
+        self.stats.load(data.get('stats', {}))
+
+        self.base_max_hp = data.get('hp', self.stats.get_base_stat('hp'))
+        self.base_attack = data.get('attack', self.stats.get_base_stat('attack'))
+        self.base_defense = data.get('defense', self.stats.get_base_stat('defense'))
+        self.base_speed = data.get('speed', self.stats.get_base_stat('speed'))
+
+        self.max_hp = data.get('hp', self.stats.get_stat('hp'))
+        self.hp = data.get('max_hp', self.max_hp)
+        self.attack = data.get('attack', self.stats.get_stat('attack'))
+        self.defense = data.get('defense', self.stats.get_stat('defense'))
+        self.speed = data.get('speed', self.stats.get_stat('speed'))
+
+        self.intelligence = data.get('intelligence', self.stats.get_stat('intelligence'))
+        self.accuracy = data.get('accuracy', self.stats.get_stat('accuracy'))
+        self.dodge = data.get('dodge', self.stats.get_stat('dodge'))
+        self.parry = data.get('parry', self.stats.get_stat('parry'))
+        self.athletism = data.get('athletism', self.stats.get_stat('athletism'))
+        self.cunning = data.get('cunning', self.stats.get_stat('cunning'))
+
+        self.crit_chance = data.get('crit_chance', self.stats.get_stat('crit_chance'))
+        self.crit_damage = data.get('crit_damage', self.stats.get_stat('crit_damage'))
+        self.armor = data.get('armor', self.stats.get_stat('armor'))
+        self.block_chance = data.get('block_chance', self.stats.get_stat('block_chance'))
+        self.armor_penetration = data.get('armor_penetration', self.stats.get_stat('armor_penetration'))
+        self.damage_reduction = data.get('damage_reduction', self.stats.get_stat('damage_reduction'))
+
+        self.level = data.get('level', 1)
+        self.exp = data.get('exp', 0)
+        self.exp_to_next = data.get('exp_to_next', 100)
+        self.stat_points = data.get('stat_points', 0)
+
+        self.symbol = data.get('symbol', '@')
+        self.name = data.get('name', "Hero")
+
+        player_inventory = data.get('inventory', [])
+        ItemManager.load(player_inventory, self)
+
+        self.max_inventory = data.get('max_inventory', 20)
+
+        player_equipments = data.get('equipments', {})
+        self.equipment = Equipment()
+        self.equipment.load(player_equipments, self)
+
+        starting_item = data.get('starting_item', None)
+        if starting_item:
+            self.starting_item = ItemManager.get_items_by_id(starting_item)
