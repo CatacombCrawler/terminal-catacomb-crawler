@@ -225,3 +225,7 @@ class StatsSystem:
                     if indeg[v] == 0:
                         q.append(v)
         return order if len(order) == len(nodes) else nodes
+
+    def load(self, data: dict):
+        if data:
+            self.equipment_bonuses = data.get("equipment_bonuses", {})
