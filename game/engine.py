@@ -13,6 +13,16 @@ from .monsters.monsters import MonsterManager as EnemyManager
 from .combat import CombatManager, COMBAT_ACTIONS
 from .character_creation import CharacterCreator
 from .level_up_ui import LevelUpUI
+from .terminal_utils import normal_input_mode
+
+
+# Sounds
+import pygame.mixer
+import pygame.time
+
+pygame.mixer.init()
+
+game_initiate_sound = pygame.mixer.Sound('game/sounds/game-start-sound.wav')
 from InquirerPy import inquirer
 import re
 from datetime import datetime
@@ -32,7 +42,9 @@ class GameEngine:
         self.combat_manager = CombatManager()
         self.combat_messages = []
         self.character_creator = None
-        
+
+
+
         # Door room system
         self.door_rooms = {}  # Dictionary mapping door positions to DoorRoom objects
         self.current_door_room = None
@@ -59,9 +71,29 @@ class GameEngine:
         # Create player and run character creation
         self.player = Player(x=5, y=5)
         
+        # Sound
+        character_cancel_sound = pygame.mixer.Sound('game/sounds/character_cancel_sound.wav')
+
         # Run character creation process
-        if not self.character_creator.create_character(self.player):
-            print("Character creation cancelled. Exiting...")
+        # use try-except to handle Ctrl+C gracefully
+        try:
+            if not self.character_creator.create_character(self.player):
+
+                character_cancel_sound.play()
+                while pygame.mixer.get_busy():
+                    pygame.time.wait(1)
+
+                print("Character creation cancelled. Exiting...")
+                return False
+
+        except KeyboardInterrupt:
+
+            # Sound
+            character_cancel_sound.play()
+            while pygame.mixer.get_busy():
+                pygame.time.wait(1)  # Waits for sound to finish
+
+            print("\nCharacter creation cancelled. Exiting...")
             return False
         
         # Create other game objects
@@ -76,11 +108,15 @@ class GameEngine:
         # Place player in a valid starting position
         start_x, start_y = self.level.get_random_floor_position()
         self.player.x = start_x
+
         self.player.y = start_y
-        
         # Spawn some enemies
         self.spawn_initial_enemies()
-        
+
+        # sound
+        game_initiate_sound.play()
+
+
         print("Game initialized successfully!")
         time.sleep(1)
         return True
@@ -231,6 +267,9 @@ class GameEngine:
         
         # Game ended
         print(self.terminal.clear)
+
+        # --ADD SOUND IN FUTURE VERSIONS
+
         print("Thanks for playing Terminal Dungeon Crawler!")
         
     def handle_input(self):
@@ -269,7 +308,9 @@ class GameEngine:
                 print(self.terminal.clear)
                 print(f"{self.terminal.yellow}No stat points available to allocate.{self.terminal.normal}")
                 print("Gain experience and level up to earn more stat points!")
-                input("Press Enter to continue...")
+                print("Press Enter to continue...")
+                # use inkey so it works under cbreak on all platforms
+                self.terminal.inkey()
                 self.needs_render = True
             return
         elif key.lower() == GAME_CONSTANTS.SAVE_KEY:
@@ -286,7 +327,7 @@ class GameEngine:
 
                 print(GAME_CONSTANTS.SAVE_TEXT)
                 self.save_manager.save()
-            
+
         # Combat input handling
         if self.combat_manager.in_combat:
             self.handle_combat_input(key)
@@ -295,24 +336,36 @@ class GameEngine:
             
     def handle_exploration_input(self, key):
         """Handle input during exploration (non-combat)"""
+
+
+        # -- ADD SOUND
+        key_sound = pygame.mixer.Sound('game/sounds/ui-button-click-5-327756.wav')
+        key_sound.set_volume(0.2)
+
+
         # Movement keys
         new_x, new_y = self.player.x, self.player.y
-        
+
         if key.lower() == 'w' or key.code == self.terminal.KEY_UP:
             new_y -= 1
+
         elif key.lower() == 's' or key.code == self.terminal.KEY_DOWN:
             new_y += 1
+
         elif key.lower() == 'a' or key.code == self.terminal.KEY_LEFT:
             new_x -= 1
+
         elif key.lower() == 'd' or key.code == self.terminal.KEY_RIGHT:
             new_x += 1
+
         elif key.lower() == 'e':
             # Interaction key - check for doors
             self.handle_door_interaction()
             return
         else:
             return  # Invalid exploration key
-            
+
+
         # Check if there's an enemy at the target position
         enemy = self.enemy_manager.get_enemy_at(new_x, new_y)
         if enemy:
@@ -323,7 +376,9 @@ class GameEngine:
             self.combat_messages.append({"type": "system", "message": combat_start_msg})
             self.needs_render = True
             return
-            
+
+        key_sound.play()
+
         # Try to move player
         if self.can_move_to(new_x, new_y):
             self.player.move(new_x, new_y)
@@ -479,6 +534,10 @@ class GameEngine:
         
     def show_stairs_warning(self):
         """Show warning about going down stairs"""
+        # Sound
+        warning_sound = pygame.mixer.Sound('game/sounds/quotwarningquot-175692.wav')
+        warning_sound.play()
+
         print(self.terminal.clear)
         print(self.terminal.bold + self.terminal.red + "WARNING!" + self.terminal.normal)
         print()
@@ -553,9 +612,8 @@ class GameEngine:
         self.needs_render = True
     
     def spawn_enemies_for_level(self, dungeon_level):
+
         """Spawn enemies appropriate for the dungeon level"""
-        import random
-        
         # More enemies on deeper levels
         base_enemies = 3
         bonus_enemies = min(dungeon_level - 1, 4)  # Cap at +4 bonus enemies
