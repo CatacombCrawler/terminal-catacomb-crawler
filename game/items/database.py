@@ -177,7 +177,26 @@ ITEMS = {
                 'level': 1,
                 'strength': 2
             }
-        }
+        },
+        'staff': {
+            'name': 'Staff', # light magic staff 
+            'type': ITEM_TYPES['weapon']['name'],  
+            'quality': ITEM_QUALITIES['normal']['name'],
+            'starting_item': True,
+            'description': 'A lightweight wooden staff. Ideal for early-level mages.',
+            'symbol': '|',
+            'color': 'wooden',
+            'stats': {
+                'attack': 10,
+                'defense': 0,
+                'speed':-3,
+                'hp': 5
+            },
+            'requirements': {
+                'level': 1,
+                'strength': 1
+            }
+        },  
     },
     # Future expansion - non-starting items
     'potions': {
