@@ -3,11 +3,9 @@ Game Engine - Core game loop and state management
 """
 
 import time
-from tqdm import tqdm
 from blessed import Terminal
 from .player import Player
 from .level import Level, DoorRoom
-from .save import ProgressSaveManager
 from .ui import UI
 from .monsters.monsters import MonsterManager as EnemyManager
 from .combat import CombatManager, COMBAT_ACTIONS
@@ -23,17 +21,12 @@ import pygame.time
 pygame.mixer.init()
 
 game_initiate_sound = pygame.mixer.Sound('game/sounds/game-start-sound.wav')
-from InquirerPy import inquirer
-import re
-from datetime import datetime
-from constants import Constants as GAME_CONSTANTS
 
 class GameEngine:
     """Main game engine that handles the core game loop"""
     
     def __init__(self):
         self.terminal = Terminal()
-        self.save_manager = ProgressSaveManager()
         self.running = False
         self.player = None
         self.level = None
@@ -78,14 +71,14 @@ class GameEngine:
         # use try-except to handle Ctrl+C gracefully
         try:
             if not self.character_creator.create_character(self.player):
-
+                 
                 character_cancel_sound.play()
                 while pygame.mixer.get_busy():
                     pygame.time.wait(1)
 
                 print("Character creation cancelled. Exiting...")
                 return False
-
+            
         except KeyboardInterrupt:
 
             # Sound
@@ -120,125 +113,14 @@ class GameEngine:
         print("Game initialized successfully!")
         time.sleep(1)
         return True
-
-    def init_mode(self):
-        """
-        Core method to initialize mode of the game: Start new or Play existing
-        :return:
-        """
-        while True:
-            print(self.terminal.bold + "Choose your preference:" + self.terminal.normal)
-            print()
-
-            mode_options = [{"id": GAME_CONSTANTS.START_NEW_MODE, "display": GAME_CONSTANTS.START_NEW_TEXT},
-                            {"id": GAME_CONSTANTS.PLAY_EXISTING_MODE, "display": GAME_CONSTANTS.PLAY_EXISTING_TEXT}]
-
-            # Display mode options
-            for i, option in enumerate(mode_options):
-                print(f"{option.get("id", 0)}. {self.terminal.bold}{option.get("display", "")}{self.terminal.normal}")
-
-            print()
-            print(f"Enter your choice (1-{len(mode_options)}): ", end="", flush=True)
-
-            try:
-                choice = input().strip()
-                if choice.lower() == 'q':
-                    return None
-
-                choice_num = int(choice)
-                if 1 <= choice_num <= len(mode_options):
-                    selected = mode_options[choice_num - 1]
-                    return selected.get("id")
-                else:
-                    print(f"Please enter a number between 1 and {len(mode_options)}")
-
-            except ValueError:
-                print("Please enter a valid number")
-            except KeyboardInterrupt:
-                return None
-
-            print()
-
-    def get_game_file_to_load(self):
-        """
-        Core method to choose existing game to load based on date and time
-        :return: game filename
-        """
-        print(GAME_CONSTANTS.CHOOSE_GAME_TEXT)
-        choices = []
-        for f in self.save_manager.folder_path.iterdir():
-            if f.is_file() and f.name.startswith(GAME_CONSTANTS.CKPT_FILE_PREFIX):
-                match = re.search(rf"{GAME_CONSTANTS.CKPT_FILE_PREFIX}(\d{8}_\d{6})\{GAME_CONSTANTS.FILE_EXTENSION}", f.name)
-                if match:
-                    raw_ts = match.group(1)
-                    dt = datetime.strptime(raw_ts, GAME_CONSTANTS.TS_FORMAT)
-                    display_name = dt.strftime(GAME_CONSTANTS.TS_DISPLAY_FORMAT)
-                    choices.append({"name": display_name, "value": f.name})
-
-        selected_file = inquirer.select(message=GAME_CONSTANTS.SELECT_FILE_TEXT, choices=choices).execute()
-        print(f"{GAME_CONSTANTS.SELECTED_FILE_TEXT}{selected_file}")
-        return selected_file
-
-    def load_combat_stats(self, saved_data):
-        """
-        Core method to load combat stats from file
-        :param saved_data:
-        """
-        self.combat_stats["starting_hp"] = saved_data.get("starting_hp", 0)
-        self.combat_stats["starting_level"] = saved_data.get("starting_level", 0)
-        self.combat_stats["starting_exp"] = saved_data.get("starting_exp", 0)
-        self.combat_stats["exp_gained"] = saved_data.get("exp_gained", 0)
-        self.combat_stats["enemies_defeated"] = saved_data.get("enemies_defeated", 0)
-
-    def load_game(self, saved_game_file):
-        """
-        Core method to load game from file
-        :param saved_game_file: saved game filename
-        :return:
-        """
-        print(GAME_CONSTANTS.LOADING_GAME_TEXT)
-        saved_data = self.save_manager.retrieve(saved_game_file)
-        self.character_creator = CharacterCreator(self.terminal)
-        self.player = Player()
-        self.player.load(saved_data)
-        self.load_combat_stats(saved_data)
-
-        self.level = Level(width=60, height=30)
-        self.level.load(saved_data)
-
-        self.ui = UI(self.terminal)
-        self.level_up_ui = LevelUpUI(self.terminal)
-
-        self.level.set_level_components(saved_data)
-        self.level.set_rooms(saved_data)
-        self.dungeon_level = saved_data.get("dungeon_level", 1)
-
-        door_rooms_data = saved_data.get("current_door_room", {})
-        if door_rooms_data:
-            self.in_door_room = True
-            self.current_door_room = DoorRoom(door_rooms_data.get("door_x", {}), door_rooms_data.get("door_y", {}))
-            self.current_door_room.load(door_rooms_data)
-
-        self.enemy_manager = EnemyManager() ## TODO: handle enemies
-
-        print("Game loaded successfully!")
-        time.sleep(1)
-        return True
-
+        
     def run(self):
         """Main game loop"""
         self.running = True
-
-        # Choose game loading mode
-        mode = self.init_mode()
-        if mode == GAME_CONSTANTS.PLAY_EXISTING_MODE:
-            saved_game_file = self.get_game_file_to_load()
-            if saved_game_file:
-                self.load_game(saved_game_file)
-        else:
-            # Initialize game - if it fails, exit
-            if not self.initialize():
-                return
+        
+        # Initialize game - if it fails, exit
+        if not self.initialize():
+            return
             
         self.needs_render = True
         
@@ -313,21 +195,7 @@ class GameEngine:
                 self.terminal.inkey()
                 self.needs_render = True
             return
-        elif key.lower() == GAME_CONSTANTS.SAVE_KEY:
-            print(GAME_CONSTANTS.DATA_COLLECTION_TEXT)
-            if self.player.hp > 0:
-                data_to_save = [{'player': self.player.get_player_dict()}, {'combat_stats': self.combat_stats},
-                                {"dungeon_level": self.dungeon_level}, {'level': self.level.get_level_dict()}]
-
-                if self.in_door_room:
-                    data_to_save.append({"current_door_room": self.current_door_room.get_door_room_dict()})
-
-                for k, v in tqdm(data_to_save, total=len(data_to_save), desc=GAME_CONSTANTS.SAVE_PROCESSING_TEXT):
-                    self.save_manager.collate(v)
-
-                print(GAME_CONSTANTS.SAVE_TEXT)
-                self.save_manager.save()
-
+            
         # Combat input handling
         if self.combat_manager.in_combat:
             self.handle_combat_input(key)
@@ -348,24 +216,24 @@ class GameEngine:
 
         if key.lower() == 'w' or key.code == self.terminal.KEY_UP:
             new_y -= 1
-
+            
         elif key.lower() == 's' or key.code == self.terminal.KEY_DOWN:
             new_y += 1
-
+            
         elif key.lower() == 'a' or key.code == self.terminal.KEY_LEFT:
             new_x -= 1
-
+            
         elif key.lower() == 'd' or key.code == self.terminal.KEY_RIGHT:
             new_x += 1
-
+            
         elif key.lower() == 'e':
             # Interaction key - check for doors
             self.handle_door_interaction()
             return
         else:
             return  # Invalid exploration key
-
-
+        
+            
         # Check if there's an enemy at the target position
         enemy = self.enemy_manager.get_enemy_at(new_x, new_y)
         if enemy:
@@ -376,8 +244,8 @@ class GameEngine:
             self.combat_messages.append({"type": "system", "message": combat_start_msg})
             self.needs_render = True
             return
-
-        key_sound.play()
+        
+        key_sound.play()   
 
         # Try to move player
         if self.can_move_to(new_x, new_y):
@@ -752,9 +620,9 @@ class GameEngine:
         total = detailed['total_stats']
         
         for stat_name in ['hp', 'attack', 'defense', 'speed']:
-            base_val = base.get(stat_name, stats.get(stat_name, 0))
-            bonus_val = bonuses.get(stat_name, 0)
-            total_val = total.get(stat_name, 0)
+            base_val = base[stat_name]
+            bonus_val = bonuses[stat_name]
+            total_val = total[stat_name]
             
             if bonus_val != 0:
                 sign = "+" if bonus_val > 0 else ""
