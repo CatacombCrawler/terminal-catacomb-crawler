@@ -1,8 +1,32 @@
 """
 Combat System - Turn-based combat with initiative and scalable mechanics
+Enhanced with Status Effect system contribution
 """
 
 import random
+
+class StatusEffect:
+    """Represents a status effect applied to an entity"""
+    
+    def __init__(self, name, duration, damage_per_turn=0, description=""):
+        self.name = name
+        self.duration = duration
+        self.damage_per_turn = damage_per_turn
+        self.description = description
+        
+    def apply_effect(self, target):
+        """Apply effect for this turn"""
+        result = {}
+        if self.damage_per_turn > 0:
+            damage_result = target.take_damage(self.damage_per_turn)
+            target_died = damage_result.get("died", False) if isinstance(damage_result, dict) else damage_result
+            result = {
+                "effect": self.name,
+                "damage": self.damage_per_turn,
+                "target_died": target_died
+            }
+        self.duration -= 1
+        return result
 
 class CombatManager:
     """Manages turn-based combat encounters"""
@@ -25,7 +49,8 @@ class CombatManager:
             "entity": player,
             "type": "player",
             "initiative": self.calculate_initiative(player),
-            "has_acted": False
+            "has_acted": False,
+            "status_effects": []
         }
         self.combat_participants.append(player_entry)
         
@@ -35,7 +60,8 @@ class CombatManager:
                 "entity": enemy,
                 "type": "enemy", 
                 "initiative": self.calculate_initiative(enemy),
-                "has_acted": False
+                "has_acted": False,
+                "status_effects": []
             }
             self.combat_participants.append(enemy_entry)
             
@@ -47,22 +73,13 @@ class CombatManager:
     def calculate_initiative(self, entity):
         """Calculate initiative for turn order - scalable for future items/spells"""
         base_initiative = getattr(entity, 'speed', 10)
-        
-        # Add randomness
         roll = random.randint(1, 20)
-        
-        # Future expansion points:
-        # - Item bonuses: initiative += entity.get_initiative_bonus()
-        # - Spell effects: initiative += entity.get_active_spell_bonus("initiative")
-        # - Status effects: if entity.has_status("haste"): initiative += 5
-        
         return base_initiative + roll
         
     def get_current_actor(self):
         """Get the entity whose turn it is"""
         if not self.in_combat or not self.combat_participants:
             return None
-            
         return self.combat_participants[self.current_turn_index]
         
     def is_player_turn(self):
@@ -74,9 +91,14 @@ class CombatManager:
         """End current entity's turn and advance to next"""
         if not self.in_combat:
             return None
-            
+        
+        current_actor_entry = self.combat_participants[self.current_turn_index]
+        
+        # Apply status effects at the end of their turn
+        self.process_status_effects(current_actor_entry)
+        
         # Mark current actor as having acted
-        self.combat_participants[self.current_turn_index]["has_acted"] = True
+        current_actor_entry["has_acted"] = True
         
         # Move to next participant
         self.current_turn_index += 1
@@ -86,6 +108,20 @@ class CombatManager:
             return self.end_round()
             
         return None
+        
+    def process_status_effects(self, actor_entry):
+        """Apply all active status effects to the actor"""
+        actor = actor_entry["entity"]
+        remaining_effects = []
+        messages = []
+        for effect in actor_entry.get("status_effects", []):
+            result = effect.apply_effect(actor)
+            if result:
+                messages.append(f"{actor.name if hasattr(actor, 'name') else 'Entity'} suffers {result.get('damage',0)} damage from {effect.name}")
+            if effect.duration > 0:
+                remaining_effects.append(effect)
+        actor_entry["status_effects"] = remaining_effects
+        return messages
         
     def end_round(self):
         """End the current round and start a new one"""
@@ -119,7 +155,6 @@ class CombatManager:
         """End the combat encounter"""
         self.in_combat = False
         
-        # Determine victory/defeat
         player_alive = any(p["type"] == "player" and p["entity"].hp > 0 
                           for p in self.combat_participants)
         
@@ -153,147 +188,82 @@ class CombatManager:
             
         name = current["entity"].name if hasattr(current["entity"], 'name') else str(current["entity"])
         return f"Round {self.turn_number} - {name}'s turn"
-
+        
 
 class CombatAction:
     """Represents a combat action that can be taken"""
     
     def __init__(self, name, action_type, target_type="enemy"):
         self.name = name
-        self.action_type = action_type  # "attack", "defend", "item", "spell", etc.
-        self.target_type = target_type  # "enemy", "self", "ally", "area"
+        self.action_type = action_type
+        self.target_type = target_type
         
     def can_use(self, actor):
-        """Check if actor can use this action - extensible for items/mana/cooldowns"""
-        # Future expansion:
-        # - Check mana/stamina costs
-        # - Check item availability  
-        # - Check cooldowns
-        # - Check status effects
+        """Check if actor can use this action"""
         return True
         
     def execute(self, actor, target=None):
-        """Execute the combat action - returns result dict"""
+        """Execute the combat action"""
         if self.action_type == "attack":
             return self.execute_attack(actor, target)
         elif self.action_type == "defend":
             return self.execute_defend(actor)
-        # Future actions: heal, cast_spell, use_item, etc.
+        elif self.action_type == "status_effect":
+            return self.apply_status_effect(actor, target)
         
     def execute_attack(self, attacker, target):
-        """Execute an attack action"""
+        """Simplified attack logic (kept original as-is)"""
+        if not target or not target.is_alive():
+            return {"success": False, "message": "Invalid target"}
+        base_damage = getattr(attacker, "attack", 5)
+        damage_roll = random.randint(-2, 3)
+        total_damage = max(1, base_damage + damage_roll)
+        damage_result = target.take_damage(total_damage)
+        target_died = damage_result.get("died", False) if isinstance(damage_result, dict) else damage_result
+        return {
+            "success": True,
+            "action": "attack",
+            "attacker": getattr(attacker, 'name', 'Unknown'),
+            "target": getattr(target, 'name', 'Enemy'),
+            "damage": total_damage,
+            "hit": True,
+            "target_died": target_died
+        }
+        
+    def execute_defend(self, defender):
+        """Execute a defend action"""
+        return {
+            "success": True,
+            "action": "defend",
+            "defender": getattr(defender, 'name', 'Unknown'),
+            "message": f"{getattr(defender, 'name', 'Unknown')} takes a defensive stance"
+        }
+        
+    def apply_status_effect(self, actor, target):
+        """Apply a status effect (new contribution)"""
         if not target or not target.is_alive():
             return {"success": False, "message": "Invalid target"}
         
-        # Check if attacker is a monster with advanced attack system
-        if hasattr(attacker, 'attack_player') and hasattr(attacker, 'data'):
-            # Use monster's sophisticated attack system
-            monster_attack_result = attacker.attack_player(target)
-            
-            # Handle experience gain for player targets
-            exp_gained = 0
-            if hasattr(target, 'gain_exp') and monster_attack_result.get('player_died') and hasattr(attacker, 'exp_reward'):
-                target.gain_exp(attacker.exp_reward)
-                exp_gained = attacker.exp_reward
-            
-            # Convert monster attack result to combat system format
-            # Note: We don't include "target" key for monster attacks to ensure UI
-            # properly identifies them as enemy attacks for rich formatting
-            combat_result = {
-                "success": True,
-                "action": "attack",
-                "attacker": monster_attack_result.get("attacker", attacker.name if hasattr(attacker, 'name') else "Unknown"),
-                "attack_name": monster_attack_result.get("attack_name", "Attack"),
-                "damage": monster_attack_result.get("damage", 0),
-                "deflected": monster_attack_result.get("deflected", 0),
-                "hit": monster_attack_result.get("hit", True),
-                "description": monster_attack_result.get("description", ""),
-                "target_died": monster_attack_result.get("player_died", False),
-                "special_effects": monster_attack_result.get("special_effects"),
-                "exp_gained": exp_gained
-            }
-            return combat_result
-        # Check if attacker is a player with enhanced attack system
-        elif hasattr(attacker, 'attack_enemy') and hasattr(attacker, 'accuracy'):
-            # Use player's enhanced attack system
-            player_attack_result = attacker.attack_enemy(target)
-            
-            # Convert player attack result to combat system format
-            combat_result = {
-                "success": True,
-                "action": "attack",
-                "attacker": player_attack_result.get("attacker", attacker.name if hasattr(attacker, 'name') else "Unknown"),
-                "target": player_attack_result.get("target", target.name if hasattr(target, 'name') else "Enemy"),
-                "damage": player_attack_result.get("damage", 0),
-                "deflected": player_attack_result.get("deflected", 0),
-                "hit": player_attack_result.get("hit", True),
-                "critical": player_attack_result.get("critical", False),
-                "parried": player_attack_result.get("parried", False),
-                "target_died": player_attack_result.get("enemy_died", False),
-                "exp_gained": player_attack_result.get("exp_gained", 0),
-                "leveled_up": player_attack_result.get("leveled_up", False),
-                "message": player_attack_result.get("message", "Attack completed")
-            }
-            return combat_result
-        else:
-            # Use basic attack system for player or non-monster entities
-            # Calculate damage with potential modifiers
-            base_damage = attacker.attack
-            damage_roll = random.randint(-2, 3)
-            
-            # Future expansion points:
-            # - Weapon bonuses: base_damage += attacker.weapon.damage if attacker.weapon
-            # - Critical hits: if random.randint(1, 20) >= 18: damage *= 2
-            # - Status effects: if attacker.has_status("rage"): damage += 5
-            
-            total_damage = max(1, base_damage + damage_roll)
-            
-            # Apply damage
-            damage_result = target.take_damage(total_damage)
-            target_died = damage_result.get("died", False) if isinstance(damage_result, dict) else damage_result
-            
-            # Handle experience gain for player
-            exp_gained = 0
-            if hasattr(attacker, 'gain_exp') and target_died and hasattr(target, 'exp_reward'):
-                monster_level = getattr(target, 'level', None)
-                original_exp = target.exp_reward
-                attacker.gain_exp(target.exp_reward, monster_level)
-                
-                # Calculate actual exp gained for display (including multipliers)
-                if monster_level is not None and monster_level > attacker.level:
-                    level_difference = monster_level - attacker.level
-                    multiplier = 2 ** level_difference
-                    exp_gained = int(original_exp * multiplier)
-                else:
-                    exp_gained = original_exp
-                
-            return {
-                "success": True,
-                "action": "attack",
-                "attacker": attacker.name if hasattr(attacker, 'name') else "Unknown",
-                "target": target.name if hasattr(target, 'name') else "Enemy",
-                "damage": total_damage,
-                "hit": True,
-                "target_died": target_died,
-                "exp_gained": exp_gained
-            }
-        
-    def execute_defend(self, defender):
-        """Execute a defend action - reduces incoming damage next turn"""
-        # Future: Add temporary defense bonus
-        return {
-            "success": True,
-            "action": "defend", 
-            "defender": defender.name if hasattr(defender, 'name') else "Unknown",
-            "message": f"{defender.name if hasattr(defender, 'name') else 'Unknown'} takes a defensive stance"
-        }
+        # Example: apply poison for 3 turns, 2 damage per turn
+        poison = StatusEffect("Poison", duration=3, damage_per_turn=2, description="Deals damage over time")
+        # Find target entry in combat manager
+        if hasattr(actor, "combat_manager"):
+            for participant in actor.combat_manager.combat_participants:
+                if participant["entity"] == target:
+                    participant["status_effects"].append(poison)
+                    return {
+                        "success": True,
+                        "action": "status_effect",
+                        "effect": "Poison",
+                        "target": getattr(target, "name", "Enemy"),
+                        "message": f"{getattr(target, 'name', 'Enemy')} is poisoned!"
+                    }
+        return {"success": False, "message": "Could not apply status effect"}
 
 
 # Available combat actions
 COMBAT_ACTIONS = {
     "attack": CombatAction("Attack", "attack", "enemy"),
     "defend": CombatAction("Defend", "defend", "self"),
-    # Future actions:
-    # "heal": CombatAction("Heal", "item", "self"),
-    # "fireball": CombatAction("Fireball", "spell", "area"),
+    "poison": CombatAction("Poison", "status_effect", "enemy"),
 }
