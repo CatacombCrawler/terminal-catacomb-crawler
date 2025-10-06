@@ -11,17 +11,20 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'game'))
 
 from game.engine import GameEngine
+from game.sounds import SoundManager
+
+sound = SoundManager(enabled=True)
 
 
 import pygame.mixer
 pygame.mixer.init()
-game_welcome_sound = pygame.mixer.Sound('game/sounds/gamestart-272829.wav')
-game_welcome_sound.set_volume(0.5)
+# game_welcome_sound = pygame.mixer.Sound('game/sounds/gamestart-272829.wav')
+# game_welcome_sound.set_volume(0.5)
 
 def main():
     """Main entry point for the game"""
     try:
-        game_welcome_sound.play()
+        sound.play_sound("gamestart-272829.wav")
         print("🏰 Welcome to Terminal Dungeon Crawler! 🏰")
         print("Initializing game...")
         
