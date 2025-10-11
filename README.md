@@ -53,8 +53,8 @@ Controls: WASD/Arrows=Move | Q=Quit | I=Inventory
 ## Installation
 
 ### Prerequisites
-- Python 3.7 or higher
-- pip package manager
+- Python 3.13 or higher
+- `pdm` package manager
 
 ### Setup
 1. Clone the repository:
@@ -63,20 +63,9 @@ Controls: WASD/Arrows=Move | Q=Quit | I=Inventory
    cd terminal-dungeon-crawler
    ```
 
-2. Create and activate a virtual environment:
+2. Install dependencies:
    ```bash
-   python -m venv venv
-   
-   # On Windows
-   venv\Scripts\activate
-   
-   # On macOS/Linux
-   source venv/bin/activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
+   pdm install
    ```
 
 ## How to Play
@@ -104,7 +93,7 @@ Controls: WASD/Arrows=Move | Q=Quit | I=Inventory
 ```
 terminal-dungeon-crawler/
 ├── main.py              # Game entry point
-├── requirements.txt     # Python dependencies
+├── pyproject.toml       # Project metadata and dependencies for PDM
 ├── game/
 │   ├── __init__.py
 │   ├── engine.py        # Main game loop and engine
