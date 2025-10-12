@@ -12,6 +12,7 @@ class Level:
         self.height = height
         self.tiles = []
         self.rooms = []
+        self.visited_map = [[False for _ in range(width)] for _ in range(height)]
         
         # Tile types
         self.WALL = '#'
@@ -25,6 +26,7 @@ class Level:
         # Initialize with all walls
         self.tiles = [[self.WALL for _ in range(self.width)] 
                       for _ in range(self.height)]
+        self.visited_map = [[False for _ in range(self.width)] for _ in range(self.height)]
         
         # Generate rooms
         self.generate_rooms()
@@ -163,6 +165,11 @@ class Level:
             return self.rooms[0].center()
         return 1, 1
 
+    def update_visited(self, x, y):
+        """Update the visited map at the given position"""
+        if 0 <= x < self.width and 0 <= y < self.height:
+            self.visited_map[y][x] = True
+
 
 class Room:
     """Represents a rectangular room in the dungeon"""
@@ -204,6 +211,7 @@ class DoorRoom:
         self.enemy_positions = []
         self.enemies_spawned = False  # Track if enemies have been spawned
         self.defeated_enemy_positions = set()  # Track which enemy positions have been defeated
+        self.visited_map = []
         
     def generate(self):
         """Generate the door room layout and enemy positions"""
@@ -223,6 +231,7 @@ class DoorRoom:
         
         # Initialize with walls
         self.tiles = [['#' for _ in range(self.width)] for _ in range(self.height)]
+        self.visited_map = [[False for _ in range(self.width)] for _ in range(self.height)]
         
         # Create floor area (leave 1-tile border as walls)
         for y in range(1, self.height - 1):
@@ -288,3 +297,8 @@ class DoorRoom:
     def get_active_enemy_positions(self):
         """Get enemy positions that haven't been defeated"""
         return [(x, y) for (x, y) in self.enemy_positions if (x, y) not in self.defeated_enemy_positions]
+
+    def update_visited(self, x, y):
+        """Update the visited map at the given position"""
+        if 0 <= x < self.width and 0 <= y < self.height:
+            self.visited_map[y][x] = True

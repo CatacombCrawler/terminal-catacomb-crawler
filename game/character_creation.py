@@ -165,10 +165,17 @@ class CharacterCreator:
             'shield': self.terminal.cyan,
         }
         
+        type_icons = {
+            'weapon': '⚔️',
+            'armor': '🛡️',
+            'shield': '🛡️',
+        }
+        
         color_func = type_colors.get(data['type'], self.terminal.white)
+        icon = type_icons.get(data['type'], '🔹')
         
         # Format the item display
-        print(f"{number}. {color_func(data['symbol'])} {self.terminal.bold}{data['name']}{self.terminal.normal}")
+        print(f"{number}. {icon} {color_func(self.terminal.bold(data['name']))}{self.terminal.normal}")
         print(f"   Type: {data['type'].title()}")
         print(f"   {data['description']}")
         
@@ -234,25 +241,30 @@ class CharacterCreator:
         print(self.terminal.bold + "🎉 Character Created Successfully! 🎉" + self.terminal.normal)
         print()
         
-        print(f"Hero Name: {self.terminal.bold}{player.name}{self.terminal.normal}")
-        print(f"Level: {player.level}")
-        print()
+        print(self.terminal.bold + "┌" + "─" * 14 + " Character Summary " + "─" * 14 + "┐" + self.terminal.normal)
         
-        print("Starting Stats:")
+        print(f"│ {self.terminal.bold}👤 Name:{self.terminal.normal} {self.terminal.bold}{player.name}{self.terminal.normal}")
+        print(f"│ {self.terminal.bold}📈 Level:{self.terminal.normal} {player.level}")
+        
+        print(self.terminal.bold + "├" + "─" * 47 + "┤" + self.terminal.normal)
+        
+        print("│ " + self.terminal.bold + "Starting Stats:" + self.terminal.normal)
         stats = player.get_stats()
-        print(f"  Health:  {stats['hp']}/{stats['max_hp']}")
-        print(f"  Attack:  {stats['attack']}")
-        print(f"  Defense: {stats['defense']}")  
-        print(f"  Speed:   {stats['speed']}")
-        print()
+        print(f"│   {self.terminal.red}❤️ Health:{self.terminal.normal}  {stats['hp']}/{stats['max_hp']}")
+        print(f"│   {self.terminal.red}⚔️ Attack:{self.terminal.normal}  {stats['attack']}")
+        print(f"│   {self.terminal.blue}🛡️ Defense:{self.terminal.normal} {stats['defense']}")
+        print(f"│   {self.terminal.green}💨 Speed:{self.terminal.normal}   {stats['speed']}")
         
         # Show equipped item
         equipped = player.equipment.get_equipped_items()
         if equipped:
-            print("Starting Equipment:")
+            print(self.terminal.bold + "├" + "─" * 47 + "┤" + self.terminal.normal)
+            print("│ " + self.terminal.bold + "Starting Equipment:" + self.terminal.normal)
             for slot, item in equipped.items():
-                print(f"  {slot.replace('_', ' ').title()}: {item.name}")
+                print(f"│   {slot.replace('_', ' ').title()}: {item.name}")
                 
+        print(self.terminal.bold + "└" + "─" * 47 + "┘" + self.terminal.normal)
+        
         print()
         print("Press any key to begin your adventure...")
         self.terminal.inkey()
