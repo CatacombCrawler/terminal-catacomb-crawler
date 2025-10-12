@@ -3,6 +3,7 @@ Character Creation - Starting item selection and character setup
 """
 
 from .items.items import ItemManager, Item
+from .terminal_utils import normal_input_mode, read_line_with_inkey
 
 class CharacterCreator:
     """Handles character creation process"""
@@ -56,7 +57,7 @@ class CharacterCreator:
         while True:
             try:
                 print("Enter your hero's name: ", end="", flush=True)
-                name = input().strip()
+                name = read_line_with_inkey(self.terminal).strip()
                 
                 # Validate name
                 if not name:
@@ -77,7 +78,8 @@ class CharacterCreator:
                 # Confirm the name
                 print()
                 print(f"Your hero shall be known as: {self.terminal.bold}{name}{self.terminal.normal}")
-                confirm = input("Is this correct? (y/n): ").strip().lower()
+                print("Is this correct? (y/n): ", end="", flush=True)
+                confirm = read_line_with_inkey(self.terminal).strip().lower()
                 
                 if confirm in ['y', 'yes']:
                     print()
@@ -131,7 +133,7 @@ class CharacterCreator:
             print(f"Enter your choice (1-{len(item_options)}): ", end="", flush=True)
             
             try:
-                choice = input().strip()
+                choice = read_line_with_inkey(self.terminal).strip()
                 if choice.lower() == 'q':
                     return None
                     
@@ -217,7 +219,8 @@ class CharacterCreator:
         print()
         
         while True:
-            confirm = input("Confirm this choice? (y/n): ").strip().lower()
+            print("Confirm this choice? (y/n): ", end="", flush=True)
+            confirm = read_line_with_inkey(self.terminal).strip().lower()
             if confirm in ['y', 'yes']:
                 return True
             elif confirm in ['n', 'no']:

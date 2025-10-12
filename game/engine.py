@@ -619,17 +619,20 @@ class GameEngine:
         bonuses = detailed['equipment_bonuses']
         total = detailed['total_stats']
         
-        for stat_name in ['hp', 'attack', 'defense', 'speed']:
-            base_val = base[stat_name]
-            bonus_val = bonuses[stat_name]
-            total_val = total[stat_name]
-            
+        stat_map = {"hp": "health", "attack": "attack", "defense": "defense", "speed": "speed"}
+        for display_name, internal_name in stat_map.items():
+            base_val = base.get(internal_name, 0)
+            bonus_val = bonuses.get(internal_name, 0)
+            total_val = total.get(internal_name, 0)
+
             if bonus_val != 0:
                 sign = "+" if bonus_val > 0 else ""
                 color = self.terminal.green if bonus_val > 0 else self.terminal.red
-                print(f"  {stat_name.upper()}: {total_val} ({base_val} {color}{sign}{bonus_val}{self.terminal.normal})")
+                print(
+                    f"  {display_name.upper()}: {total_val} ({base_val} {color}{sign}{bonus_val}{self.terminal.normal})"
+                )
             else:
-                print(f"  {stat_name.upper()}: {total_val}")
+                print(f"  {display_name.upper()}: {total_val}")
                 
         print(f"  Current HP: {stats['hp']}/{stats['max_hp']}")
         print()
