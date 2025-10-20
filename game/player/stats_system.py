@@ -64,9 +64,41 @@ class StatsSystem:
         """
         key = LEGACY_ALIASES.get(name, name)
         self._recalc_if_needed()
+        # If requested stat is a main stat, return main value without equipment
         if key in self._main:
             eq = self.equipment_bonuses.get(key, 0)
             return max(0, self._main[key] - eq)
+
+        # If requested stat is a derived stat, compute derived value based on
+        # mains before equipment (i.e., include class affinities but exclude equipment)
+        if key in self.db.STATS["derived"]:
+            # Build base mains (remove equipment bonuses from mains)
+            base_mains = {}
+            for k in self.db.STATS["main"].keys():
+                base_val = self._main.get(k, 0) - self.equipment_bonuses.get(k, 0)
+                base_mains[k] = base_val
+
+            # Compute derived in topo order using the same logic as _compute_derived
+            derived_def = self.db.STATS["derived"]
+            cls = self.db.CLASSES[self.class_name]
+            d_aff = cls.get("derived_affinity", {})
+
+            order = self._topo_order(list(derived_def.keys()), derived_def)
+            env = dict(base_mains)
+            derived = {}
+            for dkey in order:
+                spec = derived_def[dkey]
+                expr = spec.get("formula", "0")
+                raw_val = self._safe_eval(expr, env)
+                raw_val = max(spec["min_value"], min(spec["max_value"], raw_val))
+                raw_val *= d_aff.get(dkey, 1.0)
+                raw_val = max(spec["min_value"], min(spec["max_value"], raw_val))
+                val = int(round(raw_val)) if raw_val > 20 else round(raw_val, 2)
+                derived[dkey] = val
+                env[dkey] = val
+
+            return derived.get(key, 0)
+
         return 0
 
     def get_all_stats(self):

@@ -129,10 +129,11 @@ class Player:
         self.stats.set_equipment_bonuses(bonuses)
 
         # Update legacy properties (compat)
+        # base_* should represent values before equipment; use get_base_stat
         self.base_max_hp = self.stats.get_base_stat('hp')
         self.base_attack = self.stats.get_base_stat('attack')
-        self.base_defense = self.stats.get_stat('defense')
-        self.base_speed = self.stats.get_stat('speed')
+        self.base_defense = self.stats.get_base_stat('defense')
+        self.base_speed = self.stats.get_base_stat('speed')
 
         # Update current stats
         old_max = getattr(self, "max_hp", self.stats.get_stat('hp'))
