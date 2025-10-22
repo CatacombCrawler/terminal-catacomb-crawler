@@ -12,15 +12,22 @@ from .combat import CombatManager, COMBAT_ACTIONS
 from .character_creation import CharacterCreator
 from .level_up_ui import LevelUpUI
 from .terminal_utils import normal_input_mode
+from sounds import SoundManager
 
 
 # Sounds
-import pygame.mixer
-import pygame.time
 
-pygame.mixer.init()
+try:
+    import pygame.mixer
+    import pygame.time
+    pygame.mixer.init()
+    enabled=True
+except:
+    print("cant initialize sound system, game will initialize without sound effects . ")
+    enabled=False
+sound = SoundManager(enabled)
 
-game_initiate_sound = pygame.mixer.Sound('game/sounds/game-start-sound.wav')
+# game_initiate_sound = pygame.mixer.Sound('game/sounds/game-start-sound.wav')
 
 class GameEngine:
     """Main game engine that handles the core game loop"""
@@ -65,14 +72,14 @@ class GameEngine:
         self.player = Player(x=5, y=5)
         
         # Sound
-        character_cancel_sound = pygame.mixer.Sound('game/sounds/character_cancel_sound.wav')
+        # character_cancel_sound = pygame.mixer.Sound('game/sounds/character_cancel_sound.wav')
 
         # Run character creation process
         # use try-except to handle Ctrl+C gracefully
         try:
             if not self.character_creator.create_character(self.player):
                  
-                character_cancel_sound.play()
+                sound.play_sound("character_cancel_sound.wav")
                 while pygame.mixer.get_busy():
                     pygame.time.wait(1)
 
@@ -82,9 +89,8 @@ class GameEngine:
         except KeyboardInterrupt:
 
             # Sound
-            character_cancel_sound.play()
-            while pygame.mixer.get_busy():
-                pygame.time.wait(1)  # Waits for sound to finish
+            sound.play_sound("character_cancel_sound.wav")
+            
 
             print("\nCharacter creation cancelled. Exiting...")
             return False
@@ -107,7 +113,7 @@ class GameEngine:
         self.spawn_initial_enemies()
 
         # sound
-        game_initiate_sound.play()
+        sound.play_sound('game-start-sound.wav')
 
 
         print("Game initialized successfully!")
@@ -207,8 +213,9 @@ class GameEngine:
 
 
         # -- ADD SOUND
-        key_sound = pygame.mixer.Sound('game/sounds/ui-button-click-5-327756.wav')
-        key_sound.set_volume(0.2)
+        key_sound = 'ui-button-click-5-327756.wav'
+       
+        sound.play_sound(key_sound,volume=0.2)
 
 
         # Movement keys
@@ -245,7 +252,7 @@ class GameEngine:
             self.needs_render = True
             return
         
-        key_sound.play()   
+        sound.play_sound(key_sound,volume=0.2) 
 
         # Try to move player
         if self.can_move_to(new_x, new_y):
