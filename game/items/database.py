@@ -98,23 +98,99 @@ ITEMS = {
                 'dexterity': 10
             }
         },
-        'longbow': {
-            'name': 'Longbow',
+            'bronze_sword': {
+            'name': 'Bronze Sword',
             'type': ITEM_TYPES['weapon']['name'],
             'quality': ITEM_QUALITIES['normal']['name'],
             'starting_item': False,
-            'description': 'A tall bow, offering great range and punch, but slower to draw.',
-            'symbol': ')',
-            'color': 'yellow',
+            'description': 'A well-crafted bronze blade with a sharp edge and balanced weight.',
+            'symbol': '/',
+            'color': 'bright_yellow',
             'stats': {
-                'attack': 14,
+                'attack': 17,
                 'defense': 0,
-                'speed': 10,
+                'speed': -6,
                 'hp': 0
             },
             'requirements': {
-                'level': 4,
+                'level': 2,
+                'strength': 12
+            }
+        },
+        'iron_bow': {
+            'name': 'Iron Bow',
+            'type': ITEM_TYPES['weapon']['name'],
+            'quality': ITEM_QUALITIES['normal']['name'],
+            'starting_item': False,
+            'description': 'A sturdy bow made from iron with reinforced limbs for increased power.',
+            'symbol': '}',
+            'color': 'cyan',
+            'stats': {
+                'attack': 8,
+                'defense': 0,
+                'speed': 15,
+                'hp': 0
+            },
+            'requirements': {
+                'level': 3,
+                'dexterity': 14
+            }
+        },
+        'silver_bow': {
+            'name': 'Silver Bow',
+            'type': ITEM_TYPES['weapon']['name'],
+            'quality': ITEM_QUALITIES['rare']['name'],
+            'starting_item': False,
+            'description': 'An elegant bow forged from pure silver, gleaming with otherworldly beauty.',
+            'symbol': '}',
+            'color': 'yellow',
+            'stats': {
+                'attack': 12,
+                'defense': 0,
+                'speed': 18,
+                'hp': 0
+            },
+            'requirements': {
+                'level': 5,
                 'dexterity': 16
+            }
+        },
+        'master_sword': {
+            'name': 'Master Sword',
+            'type': ITEM_TYPES['weapon']['name'],
+            'quality': ITEM_QUALITIES['legendary']['name'],
+            'starting_item': False,
+            'description': 'A legendary blade wielded by a great hero, its steel gleams with ancient power.',
+            'symbol': '/',
+            'color': 'magenta',
+            'stats': {
+                'attack': 25,
+                'defense': 0,
+                'speed': -6,
+                'hp': 0
+            },
+            'requirements': {
+                'level': 10,
+                'strength': 18
+            }
+        },
+        'artemis_bow': {
+            'name': 'Artemis Bow',
+            'type': ITEM_TYPES['weapon']['name'],
+            'quality': ITEM_QUALITIES['legendary']['name'],
+            'starting_item': False,
+            'description': 'A divine bow blessed by the goddess Artemis, arrows shot from it never miss their mark.',
+            'symbol': '}',
+            'color': 'magenta',
+            'stats': {
+                'attack': 24,
+                'defense': 0,
+                'speed': 18,
+                'hp': 0
+            },
+            'requirements': {
+                'level': 10,
+                'dexterity': 20
             }
         }
     },
@@ -137,6 +213,43 @@ ITEMS = {
                 'level': 1,
                 'strength': 5
             }
+        },'iron_chest': {
+            'name': 'Iron Chestplate',
+            'type': ITEM_TYPES['armor']['name'],
+            'quality': ITEM_QUALITIES['normal']['name'],
+            'starting_item': False,
+            'description': 'A well-forged iron chestplate that provides reliable protection in battle.',
+            'symbol': '[',
+            'color': 'cyan',
+            'stats': {
+                'attack': 0,
+                'defense': 25,
+                'speed': -4,
+                'hp': 45
+            },
+            'requirements': {
+                'level': 3,
+                'strength': 8
+            }
+        },
+        'plate_armor': {
+            'name': 'Plate Armor',
+            'type': ITEM_TYPES['armor']['name'],
+            'quality': ITEM_QUALITIES['rare']['name'],
+            'starting_item': False,
+            'description': 'Masterfully crafted full plate armor that turns aside even the mightiest blows.',
+            'symbol': '[',
+            'color': 'yellow',
+            'stats': {
+                'attack': 0,
+                'defense': 35,
+                'speed': -6,
+                'hp': 60
+            },
+            'requirements': {
+                'level': 5,
+                'strength': 10
+            }
         }
     },
     'shields': {
@@ -157,6 +270,25 @@ ITEMS = {
             'requirements': {
                 'level': 1,
                 'strength': 3
+            }
+        },
+        'kite_shield': {
+            'name': 'Kite Shield',
+            'type': ITEM_TYPES['shield']['name'],
+            'quality': ITEM_QUALITIES['normal']['name'],
+            'starting_item': False,
+            'description': 'A large teardrop-shaped shield that provides excellent protection from head to knee.',
+            'symbol': 'K',
+            'color': 'cyan',
+            'stats': {
+                'attack': 0,
+                'defense': 20,
+                'speed': -1,
+                'hp': 20
+            },
+            'requirements': {
+                'level': 3,
+                'strength': 5
             }
         },
         'broquel': {
@@ -201,6 +333,28 @@ ITEMS = {
             },
             'requirements': {
                 'level': 1
+            }
+        },
+        'greater_health_potion': {
+            'name': 'Greater Health Potion',
+            'type': ITEM_TYPES['consumable']['name'],
+            'quality':  ITEM_QUALITIES['normal']['name'],
+            'starting_item': False,
+            'description': 'A large red liquid that restores vitality.',
+            'symbol': '!',
+            'color': 'red',
+            'stats': {
+                'attack': 0,
+                'defense': 0,
+                'speed': 0,
+                'hp': 0
+            },
+            'effect': {
+                'type':  ITEM_TYPES['consumable']['effect']['heal'],
+                'amount': 50
+            },
+            'requirements': {
+                'level': 3
             }
         }
     }
