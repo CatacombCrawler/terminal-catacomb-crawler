@@ -114,7 +114,34 @@ class PlayerDatabase:
                         " drawing on countless battles",
                         ""
                     ]
+                },
+                # --- NEW ---
+                "spear_dash": {
+                    "high": [
+                        "{player} lunges forward, piercing {enemy} with brutal force!",
+                        "{player} dashes, slamming the spearpoint home!",
+                        "{player} charges, {enemy} cannot stop the spear's impact!"
+                    ],
+                    "low": [
+                        "{player} dashes, grazing {enemy} with the spear.",
+                        "{player} commits to a lunge but {enemy} barely avoids it."
+                    ],
+                    "normal": [
+                        "{player} dashes forward, landing a solid piercing strike!",
+                        "{player} uses the spear's reach to dash and strike {enemy}!",
+                        "{player} lunges past {enemy}'s guard!"
+                    ],
+                    "critical": [
+                        "{base} - a perfect, armor-shattering lunge!",
+                        "{base} - the spear finds a vital point with unstoppable force!"
+                    ],
+                    "skill_flavors": [
+                        " with disciplined power",
+                        " in a flash of steel",
+                        " with a warrior's charge"
+                    ]
                 }
+                # --- END NEW ---
             },
         },
 
@@ -172,7 +199,33 @@ class PlayerDatabase:
                         " drawing on magical studies",
                         ""
                     ]
+                },
+                # --- NEW ---
+                "spear_dash": {
+                    "high": [
+                        "{player} infuses the spear with magic and lunges!",
+                        "{player} teleports a short distance, piercing {enemy}!",
+                        "{player} uses arcane speed to dash and strike {enemy}!"
+                    ],
+                    "low": [
+                        "{player} attempts a lunge, but their focus wavers.",
+                        "{player} dashes, barely grazing {enemy}."
+                    ],
+                    "normal": [
+                        "{player} lunges with magically-guided precision!",
+                        "{player} channels energy into the spear tip and dashes!",
+                        "{player} pierces {enemy} with an arcane-honed lunge!"
+                    ],
+                    "critical": [
+                        "{base} - a perfect lunge, amplified by arcane power!",
+                        "{base} - the spearpoint erupts with energy on impact!"
+                    ],
+                    "skill_flavors": [
+                        " with focused energy",
+                        " using spell-like precision"
+                    ]
                 }
+                # --- END NEW ---
             },
         },
 
@@ -230,7 +283,34 @@ class PlayerDatabase:
                         " drawing on underhanded tactics",
                         ""
                     ]
+                },
+                # --- NEW ---
+                "spear_dash": {
+                    "high": [
+                        "{player} darts from the shadows, spear first!",
+                        "{player} lunges from an impossible angle, piercing {enemy}!",
+                        "{player}'s dash is a blur, ending with a spear in {enemy}!"
+                    ],
+                    "low": [
+                        "{player} dashes, but {enemy} sidesteps the spear's tip.",
+                        "{player}'s lunge is quick, but fails to find purchase."
+                    ],
+                    "normal": [
+                        "{player} dashes, landing a precise strike!",
+                        "{player} exploits an opening with a quick spear lunge!",
+                        "{player} pierces {enemy} with a rogue's deadly dash!"
+                    ],
+                    "critical": [
+                        "{base} - a dagger-fast lunge finds {enemy}'s heart!",
+                        "{base} - pure speed! The spear pierces a vital organ!"
+                    ],
+                    "skill_flavors": [
+                        " with deadly precision",
+                        " from an unseen angle",
+                        " with lethal grace"
+                    ]
                 }
+                # --- END NEW ---
             },
         },
 
@@ -288,7 +368,33 @@ class PlayerDatabase:
                         " drawing on outlaw experience",
                         ""
                     ]
+                },
+                # --- NEW ---
+                "spear_dash": {
+                    "high": [
+                        "{player} kicks up dirt then lunges, piercing {enemy}!",
+                        "{player} feints high and dashes low, sinking the spear in!",
+                        "{player} lunges with a sudden, vicious burst of speed!"
+                    ],
+                    "low": [
+                        "{player} dashes, but {enemy} isn't fooled.",
+                        "{player}'s lunge is wide and easily avoided."
+                    ],
+                    "normal": [
+                        "{player} takes an opportunity to dash and strike {enemy}!",
+                        "{player} lunges, landing a dirty but effective hit!",
+                        "{player} pierces {enemy} with an opportunistic lunge!"
+                    ],
+                    "critical": [
+                        "{base} - a vicious lunge to {enemy}'s kidneys!",
+                        "{base} - right in the back! A perfect cheap shot!"
+                    ],
+                    "skill_flavors": [
+                        " with cruel efficiency",
+                        " like a cornered rat"
+                    ]
                 }
+                # --- END NEW ---
             },
         },
 
@@ -346,7 +452,33 @@ class PlayerDatabase:
                         " drawing on shadow magic",
                         ""
                     ]
+                },
+                # --- NEW ---
+                "spear_dash": {
+                    "high": [
+                        "{player}'s spear becomes a lance of shadow as they lunge!",
+                        "{player} pierces {enemy} with a spear wreathed in dark magic!",
+                        "{player} lunges, draining life as the spear connects!"
+                    ],
+                    "low": [
+                        "{player} dashes, but the dark energy dissipates.",
+                        "{player}'s spear scrapes harmlessly against {enemy}."
+                    ],
+                    "normal": [
+                        "{player} lunges with a spear of solid shadow!",
+                        "{player} dashes, landing a chillingly precise strike!",
+                        "{player} pierces {enemy} with dark intent!"
+                    ],
+                    "critical": [
+                        "{base} - a soul-piercing lunge!",
+                        "{base} - the spear tears through {enemy}'s defenses and spirit!"
+                    ],
+                    "skill_flavors": [
+                        " with forbidden power",
+                        " with chilling accuracy"
+                    ]
                 }
+                # --- END NEW ---
             },
         },
 
@@ -403,7 +535,33 @@ class PlayerDatabase:
                         " drawing on holy power",
                         ""
                     ]
+                },
+                # --- NEW ---
+                "spear_dash": {
+                    "high": [
+                        "{player} charges, spear glowing with holy light!",
+                        "{player} lunges, piercing {enemy} with divine judgment!",
+                        "{player} dashes, a beacon of light, and strikes {enemy}!"
+                    ],
+                    "low": [
+                        "{player} lunges, but their faith wavers.",
+                        "{player} dashes, but the holy light sputters."
+                    ],
+                    "normal": [
+                        "{player} dashes forward, striking {enemy} with a blessed spear!",
+                        "{player} lunges with righteous purpose!",
+                        "{player} pierces {enemy} with a sacred lunge!"
+                    ],
+                    "critical": [
+                        "{base} - a divine charge that purges darkness!",
+                        "{base} - the spear smites {enemy} with holy vengeance!"
+                    ],
+                    "skill_flavors": [
+                        " with righteous conviction",
+                        " with sacred power"
+                    ]
                 }
+                # --- END NEW ---
             },
         },
     }

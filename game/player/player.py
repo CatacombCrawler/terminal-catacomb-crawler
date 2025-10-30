@@ -1,7 +1,7 @@
 """
 Player Character - Handles player stats, inventory, and actions
 """
-
+import random
 from ..items.items import Equipment
 from .player_database import PlayerDatabase
 from .stats_system import StatsSystem, LEGACY_ALIASES
@@ -228,7 +228,11 @@ class Player:
             self.level_up()
             leveled_up = True
         
-        return leveled_up
+        # Return a dictionary for consistency with combat results
+        return {
+            "leveled_up": leveled_up,
+            "exp_gained": amount
+        }
 
     def level_up(self):
         """Level up the player and grant stat points for allocation"""
@@ -338,10 +342,13 @@ class Player:
         enemy_died = result["died"]
         leveled_up = False
         exp_gained = 0
+        exp_gained_amount = 0
         if enemy_died:
             monster_level = getattr(enemy, 'level', None)
-            exp_gained = getattr(enemy, "exp_reward", 0)
-            leveled_up = self.gain_exp(exp_gained, monster_level)
+            exp_gained_amount = getattr(enemy, "exp_reward", 0)
+            exp_result = self.gain_exp(exp_gained_amount, monster_level)
+            leveled_up = exp_result["leveled_up"]
+            exp_gained = exp_result["exp_gained"] # Get the modified amount
         
         # === COMBAT RESULT ===
         combat_result = {
@@ -365,6 +372,81 @@ class Player:
         )
         
         return combat_result
+
+    # --- NEW SPEAR DASH METHOD ---
+    def spear_dash_attack(self, enemy):
+        """
+        Spear Dash Attack - A special attack that always hits
+        and pierces enemy armor.
+        """
+        import random
+        
+        # === HIT CALCULATION ===
+        # This is a special attack that always hits.
+        
+        # === DAMAGE CALCULATION ===
+        # Base damage from attack stat
+        base_damage = self.attack
+        
+        # Add a smaller, more reliable variance
+        damage_variance = random.randint(0, 3) 
+        total_damage = max(1, base_damage + damage_variance)
+        
+        # === CRITICAL HIT CHECK ===
+        crit_chance = min(100, max(0, self.crit_chance)) / 100.0
+        crit_roll = random.random()
+        is_critical = crit_roll <= crit_chance
+        
+        if is_critical:
+            # Apply critical damage multiplier
+            crit_multiplier = self.crit_damage / 100.0
+            total_damage = int(total_damage * crit_multiplier)
+            
+        # === ENEMY DEFENSIVE MECHANICS ===
+        # This attack cannot be parried.
+        was_parried = False
+        
+        # === APPLY DAMAGE (PIERCING) ===
+        # We pass a massive armor pen value to bypass enemy defenses.
+        player_armor_penetration = 9999 
+        result = enemy.take_damage(total_damage, player_armor_penetration)
+        
+        # === EXPERIENCE AND LEVELING ===
+        enemy_died = result["died"]
+        leveled_up = False
+        exp_gained = 0
+        exp_gained_amount = 0
+        if enemy_died:
+            monster_level = getattr(enemy, 'level', None)
+            exp_gained_amount = getattr(enemy, "exp_reward", 0)
+            exp_result = self.gain_exp(exp_gained_amount, monster_level)
+            leveled_up = exp_result["leveled_up"]
+            exp_gained = exp_result["exp_gained"] # Get the modified amount
+        
+        # === COMBAT RESULT ===
+        combat_result = {
+            "type": "combat",
+            "attacker": self.name,
+            "target": enemy.name,
+            "damage": total_damage,
+            "hit": True, # Always hits
+            "critical": is_critical,
+            "parried": was_parried, # Always false
+            "enemy_died": enemy_died,
+            "exp_gained": exp_gained,
+            "leveled_up": leveled_up,
+            "deflected": result.get("deflected", 0),
+            "damage_reduction": result.get("damage_reduction", 0)
+        }
+        
+        # Add descriptive message - we use a new "attack_type"
+        combat_result["message"] = self._generate_combat_message(
+            enemy, total_damage, is_critical, was_parried, base_damage, damage_variance, result, 
+            attack_type="spear_dash" # This will look for "spear_dash" messages
+        )
+        
+        return combat_result
+    # --- END OF NEW METHOD ---
 
     def _generate_combat_message(self, enemy, total_damage, is_critical, was_parried, base_damage, damage_variance, damage_result=None, attack_type="basic_attack"):
         """Generate descriptive combat messages based on class, attack type, and circumstances"""
@@ -428,7 +510,7 @@ class Player:
             damage_reduction = damage_result.get("damage_reduction", 0)
             
             if damage_reduction > 0:
-                final_message += f" ({enemy.name} deflects {deflected_amount} damage with {damage_reduction}% damage reduction)"
+                final_message += f" ({enemy.name} deflects {deflected_amount} damage with {damage_reduction:.0f}% damage reduction)"
             else:
                 final_message += f" ({enemy.name} deflects {deflected_amount} damage)"
         

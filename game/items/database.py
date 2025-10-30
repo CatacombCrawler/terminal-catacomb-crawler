@@ -116,7 +116,28 @@ ITEMS = {
                 'level': 4,
                 'dexterity': 16
             }
+        },
+        'iron_spear': {
+            'name': 'Iron Spear',
+            'type': ITEM_TYPES['weapon']['name'],
+            'quakity':ITEM_QUALITIES['normal']['name'],
+            'starting_item':False,
+            'description':'A spear with a sharp iron tip. Its reach and light weight allow for a quick, piercing attacks.',
+            'symbol':'/',
+            'color':'grey',
+            'stats':{
+                'attack':12,
+                'defense':3,
+                'speed':8,
+                'hp':0
+            },
+            'requirements':{
+                'level': 3,
+                'decterity':14
+
+            }
         }
+
     },
     'armor': {
         'rusted_chest': {

@@ -98,7 +98,7 @@ class CombatManager:
             
         # Remove dead enemies from combat
         self.combat_participants = [p for p in self.combat_participants 
-                                  if p["type"] == "player" or p["entity"].is_alive()]
+                                    if p["type"] == "player" or p["entity"].is_alive()]
         
         # Check if combat should end
         if self.should_end_combat():
@@ -109,9 +109,9 @@ class CombatManager:
     def should_end_combat(self):
         """Check if combat should end"""
         player_alive = any(p["type"] == "player" and p["entity"].hp > 0 
-                          for p in self.combat_participants)
-        enemies_alive = any(p["type"] == "enemy" and p["entity"].is_alive() 
                            for p in self.combat_participants)
+        enemies_alive = any(p["type"] == "enemy" and p["entity"].is_alive() 
+                            for p in self.combat_participants)
         
         return not player_alive or not enemies_alive
         
@@ -121,7 +121,7 @@ class CombatManager:
         
         # Determine victory/defeat
         player_alive = any(p["type"] == "player" and p["entity"].hp > 0 
-                          for p in self.combat_participants)
+                           for p in self.combat_participants)
         
         self.combat_participants = []
         self.current_turn_index = 0
@@ -156,30 +156,48 @@ class CombatManager:
 
 
 class CombatAction:
-    """Represents a combat action that can be taken"""
-    
+    """Represents a combat action that can be taken during a turn"""
+
     def __init__(self, name, action_type, target_type="enemy"):
         self.name = name
-        self.action_type = action_type  # "attack", "defend", "item", "spell", etc.
-        self.target_type = target_type  # "enemy", "self", "ally", "area"
-        
+        self.action_type = action_type
+        self.target_type = target_type
+
     def can_use(self, actor):
-        """Check if actor can use this action - extensible for items/mana/cooldowns"""
+        """Check if the actor can use this action - scalable for future mechanics"""
+        
+        # This logic is specifically for spear_dash
+        if self.action_type == "spear_dash":
+            equipped_weapon = None
+            if hasattr(actor, 'equipment') and 'main_hand' in actor.equipment:
+                equipped_weapon = actor.equipment['main_hand']
+
+            # Check if the weapon exists and is the 'iron_spear'
+            # Assuming your Item object has an 'item_id' property (e.g., 'iron_spear')
+            if equipped_weapon and hasattr(equipped_weapon, 'item_id') and equipped_weapon.item_id == 'iron_spear':
+                return True # Yes, they can use it
+            else:
+                return False # No spear, no dash
+        
+        # All other actions are usable by default for now
         # Future expansion:
         # - Check mana/stamina costs
-        # - Check item availability  
+        # - Check item availability 
         # - Check cooldowns
         # - Check status effects
         return True
         
     def execute(self, actor, target=None):
-        """Execute the combat action - returns result dict"""
+        """Execute the combat action - scalable for future mechanics"""
         if self.action_type == "attack":
             return self.execute_attack(actor, target)
         elif self.action_type == "defend":
             return self.execute_defend(actor)
-        # Future actions: heal, cast_spell, use_item, etc.
         
+        # Check for "spear_dash"
+        elif self.action_type == "spear_dash":
+            return self.execute_spear_dash(actor, target)
+            
     def execute_attack(self, attacker, target):
         """Execute an attack action"""
         if not target or not target.is_alive():
@@ -187,18 +205,13 @@ class CombatAction:
         
         # Check if attacker is a monster with advanced attack system
         if hasattr(attacker, 'attack_player') and hasattr(attacker, 'data'):
-            # Use monster's sophisticated attack system
             monster_attack_result = attacker.attack_player(target)
             
-            # Handle experience gain for player targets
             exp_gained = 0
             if hasattr(target, 'gain_exp') and monster_attack_result.get('player_died') and hasattr(attacker, 'exp_reward'):
                 target.gain_exp(attacker.exp_reward)
                 exp_gained = attacker.exp_reward
             
-            # Convert monster attack result to combat system format
-            # Note: We don't include "target" key for monster attacks to ensure UI
-            # properly identifies them as enemy attacks for rich formatting
             combat_result = {
                 "success": True,
                 "action": "attack",
@@ -215,10 +228,8 @@ class CombatAction:
             return combat_result
         # Check if attacker is a player with enhanced attack system
         elif hasattr(attacker, 'attack_enemy') and hasattr(attacker, 'accuracy'):
-            # Use player's enhanced attack system
             player_attack_result = attacker.attack_enemy(target)
             
-            # Convert player attack result to combat system format
             combat_result = {
                 "success": True,
                 "action": "attack",
@@ -237,36 +248,27 @@ class CombatAction:
             return combat_result
         else:
             # Use basic attack system for player or non-monster entities
-            # Calculate damage with potential modifiers
             base_damage = attacker.attack
             damage_roll = random.randint(-2, 3)
             
-            # Future expansion points:
-            # - Weapon bonuses: base_damage += attacker.weapon.damage if attacker.weapon
-            # - Critical hits: if random.randint(1, 20) >= 18: damage *= 2
-            # - Status effects: if attacker.has_status("rage"): damage += 5
-            
             total_damage = max(1, base_damage + damage_roll)
             
-            # Apply damage
             damage_result = target.take_damage(total_damage)
             target_died = damage_result.get("died", False) if isinstance(damage_result, dict) else damage_result
             
-            # Handle experience gain for player
             exp_gained = 0
             if hasattr(attacker, 'gain_exp') and target_died and hasattr(target, 'exp_reward'):
                 monster_level = getattr(target, 'level', None)
                 original_exp = target.exp_reward
                 attacker.gain_exp(target.exp_reward, monster_level)
                 
-                # Calculate actual exp gained for display (including multipliers)
                 if monster_level is not None and monster_level > attacker.level:
                     level_difference = monster_level - attacker.level
                     multiplier = 2 ** level_difference
                     exp_gained = int(original_exp * multiplier)
                 else:
                     exp_gained = original_exp
-                
+                    
             return {
                 "success": True,
                 "action": "attack",
@@ -277,10 +279,39 @@ class CombatAction:
                 "target_died": target_died,
                 "exp_gained": exp_gained
             }
+            
+    def execute_spear_dash(self, attacker, target):
+        """Execute a spear dash attack - this calls a special method on the player"""
+        if not target or not target.is_alive():
+            return {"success": False, "message": "Invalid target"}
+            
+        # We assume the player (attacker) has a new method called 'spear_dash_attack'
+        # This keeps the logic consistent with your 'attack_enemy' method
+        if hasattr(attacker, 'spear_dash_attack'):
+            # Use player's special spear dash system
+            dash_result = attacker.spear_dash_attack(target)
+            
+            # Convert the result to the combat system format
+            combat_result = {
+                "success": True,
+                "action": "spear_dash", # Identify this as a special action
+                "attacker": dash_result.get("attacker", attacker.name if hasattr(attacker, 'name') else "Unknown"),
+                "target": dash_result.get("target", target.name if hasattr(target, 'name') else "Enemy"),
+                "damage": dash_result.get("damage", 0),
+                "hit": dash_result.get("hit", True),
+                "critical": dash_result.get("critical", False), # Maybe dashes can crit?
+                "target_died": dash_result.get("enemy_died", False),
+                "exp_gained": dash_result.get("exp_gained", 0),
+                "leveled_up": dash_result.get("leveled_up", False),
+                "message": dash_result.get("message", "You dash forward!")
+            }
+            return combat_result
+        else:
+            # Fallback if the 'spear_dash_attack' method is missing
+            return {"success": False, "message": "Spear Dash ability not implemented on actor."}
         
     def execute_defend(self, defender):
         """Execute a defend action - reduces incoming damage next turn"""
-        # Future: Add temporary defense bonus
         return {
             "success": True,
             "action": "defend", 
@@ -293,6 +324,7 @@ class CombatAction:
 COMBAT_ACTIONS = {
     "attack": CombatAction("Attack", "attack", "enemy"),
     "defend": CombatAction("Defend", "defend", "self"),
+    "spear_dash": CombatAction("Spear Dash", "spear_dash", "enemy"), # <-- ADDED!
     # Future actions:
     # "heal": CombatAction("Heal", "item", "self"),
     # "fireball": CombatAction("Fireball", "spell", "area"),
