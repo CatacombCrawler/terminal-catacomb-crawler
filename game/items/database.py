@@ -120,19 +120,19 @@ ITEMS = {
         'iron_spear': {
             'name': 'Iron Spear',
             'type': ITEM_TYPES['weapon']['name'],
-            'quakity':ITEM_QUALITIES['normal']['name'],
-            'starting_item':False,
+            'quaity':ITEM_QUALITIES['normal']['name'],
+            'starting_item':True,
             'description':'A spear with a sharp iron tip. Its reach and light weight allow for a quick, piercing attacks.',
             'symbol':'/',
             'color':'grey',
             'stats':{
-                'attack':12,
+                'attack':8,
                 'defense':3,
                 'speed':8,
                 'hp':0
             },
             'requirements':{
-                'level': 1,
+                'level': 2,
                 'decterity':14
 
             }
