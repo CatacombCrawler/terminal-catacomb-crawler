@@ -132,7 +132,7 @@ ITEMS = {
                 'hp':0
             },
             'requirements':{
-                'level': 3,
+                'level': 1,
                 'decterity':14
 
             }
