@@ -89,21 +89,21 @@ class LevelUpUI:
         print(self.terminal.clear)
         
         # Header
-        print(f"{self.terminal.bold}{self.terminal.yellow}⭐ LEVEL UP! ⭐{self.terminal.normal}")
-        print(f"{self.terminal.bold}Congratulations! You've reached level {player.level}!{self.terminal.normal}")
+        print(self.terminal.bold + "┌" + "─" * 18 + " LEVEL UP! " + "─" * 18 + "┐" + self.terminal.normal)
+        print(f"│ {self.terminal.bold}Congratulations! You've reached level {player.level}!{self.terminal.normal}")
         
         # Show health restoration benefit
         health_restored = player.max_hp - player.hp
         if health_restored > 0:
-            print(f"{self.terminal.green}✚ Health fully restored! (+{health_restored} HP){self.terminal.normal}")
+            print(f"│ {self.terminal.green}✚ Health fully restored! (+{health_restored} HP){self.terminal.normal}")
         else:
-            print(f"{self.terminal.green}✚ Health fully restored!{self.terminal.normal}")
+            print(f"│ {self.terminal.green}✚ Health fully restored!{self.terminal.normal}")
         
-        print(f"You have {self.terminal.bold}{self.terminal.cyan}{player.stat_points}{self.terminal.normal} stat points to allocate.\n")
+        print(f"│ You have {self.terminal.bold}{self.terminal.cyan}{player.stat_points}{self.terminal.normal} stat points to allocate.")
+        print(self.terminal.bold + "├" + "─" * 48 + "┤" + self.terminal.normal)
         
         # Show current stats and allocation options
-        print(f"{self.terminal.bold}Choose a stat to improve:{self.terminal.normal}")
-        print("-" * 60)
+        print(f"│ {self.terminal.bold}Choose a stat to improve:{self.terminal.normal}")
         
         stat_names = list(player.stats.db.STATS["main"].keys())
         
@@ -113,27 +113,29 @@ class LevelUpUI:
             base_value = player.stats.get_base_stat(stat_name)
             allocated = player.stats.allocated_main.get(stat_name, 0)
             
-            # Color coding based on stat type
-            stat_colors = {
-                'strength': self.terminal.red,
-                'dexterity': self.terminal.green,
-                'vitality': self.terminal.blue,
-                'intelligence': self.terminal.magenta,
-                'athletism': self.terminal.yellow,
-                'cunning': self.terminal.cyan,
-                'willpower': self.terminal.white,
-                'charisma': self.terminal.bright_yellow,
-                'luck': self.terminal.bright_green,
+            # Color coding and icons based on stat type
+            stat_info = {
+                'strength': {'color': self.terminal.red, 'icon': '💪'},
+                'dexterity': {'color': self.terminal.green, 'icon': '🤸'},
+                'vitality': {'color': self.terminal.blue, 'icon': '❤️'},
+                'intelligence': {'color': self.terminal.magenta, 'icon': '🧠'},
+                'athletism': {'color': self.terminal.yellow, 'icon': '🏃'},
+                'cunning': {'color': self.terminal.cyan, 'icon': '🦊'},
+                'willpower': {'color': self.terminal.white, 'icon': '🧘'},
+                'charisma': {'color': self.terminal.bright_yellow, 'icon': '😊'},
+                'luck': {'color': self.terminal.bright_green, 'icon': '🍀'},
             }
             
-            color_func = stat_colors.get(stat_name, self.terminal.white)
+            info = stat_info.get(stat_name, {'color': self.terminal.white, 'icon': '🔹'})
+            color_func = info['color']
+            icon = info['icon']
             
             # Check if stat is at maximum
             can_increase = allocated < stat_config["max_value"]
             status_indicator = "✓" if can_increase else "MAX"
             status_color = self.terminal.green if can_increase else self.terminal.red
             
-            print(f"{i:2}. {color_func(stat_config['name'].ljust(12))} "
+            print(f"│ {i:2}. {icon} {color_func(stat_config['name'].ljust(12))} "
                   f"Current: {self.terminal.bold}{current_value:3}{self.terminal.normal} "
                   f"(Base: {base_value:2}, Allocated: {allocated:2}) "
                   f"{status_color}[{status_indicator}]{self.terminal.normal}")
@@ -141,14 +143,15 @@ class LevelUpUI:
             # Show what this stat affects (key derived stats)
             affects = self.get_stat_effects(stat_name, player)
             if affects:
-                print(f"    {self.terminal.dim}Affects: {affects}{self.terminal.normal}")
-            print()
+                print(f"│    {self.terminal.dim}Affects: {affects}{self.terminal.normal}")
+            print("│")
         
-        print("-" * 60)
-        print(f"{self.terminal.bold}Commands:{self.terminal.normal}")
-        print("• Enter a number (1-9) to add 1 point to that stat")
-        print("• Type 'done' or 'd' to finish allocating")
-        print("• Type 'q' to quit and save remaining points for later")
+        print(self.terminal.bold + "├" + "─" * 48 + "┤" + self.terminal.normal)
+        print(f"│ {self.terminal.bold}Commands:{self.terminal.normal}")
+        print("│ • Enter a number (1-9) to add 1 point to that stat")
+        print("│ • Type 'done' or 'd' to finish allocating")
+        print("│ • Type 'q' to quit and save remaining points for later")
+        print(self.terminal.bold + "└" + "─" * 48 + "┘" + self.terminal.normal)
         print(f"\nRemaining points: {self.terminal.bold}{self.terminal.cyan}{player.stat_points}{self.terminal.normal}")
         print(f"Your choice: ", end="", flush=True)
         
