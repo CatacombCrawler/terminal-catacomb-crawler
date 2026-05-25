@@ -202,6 +202,50 @@ ITEMS = {
             'requirements': {
                 'level': 1
             }
+        },
+        'exp_potion': {
+            'name': 'Experience Potion',
+            'type': ITEM_TYPES['consumable']['name'],
+            'quality': ITEM_QUALITIES['normal']['name'],
+            'starting_item': False,
+            'description': 'A sparkling elixir that grants a small amount of experience.',
+            'symbol': '!',
+            'color': 'magenta',
+            'stats': {
+                'attack': 0,
+                'defense': 0,
+                'speed': 0,
+                'hp': 0
+            },
+            'effect': {
+                'type': 'exp',
+                'amount': 50
+            },
+            'requirements': {
+                'level': 1
+            }
+        },
+        'minor_health_potion': {
+            'name': 'Minor Health Potion',
+            'type': ITEM_TYPES['consumable']['name'],
+            'quality': ITEM_QUALITIES['normal']['name'],
+            'starting_item': False,
+            'description': 'A smaller healing draught for quick recovery.',
+            'symbol': '!',
+            'color': 'red',
+            'stats': {
+                'attack': 0,
+                'defense': 0,
+                'speed': 0,
+                'hp': 0
+            },
+            'effect': {
+                'type': ITEM_TYPES['consumable']['effect']['heal'],
+                'amount': 15
+            },
+            'requirements': {
+                'level': 1
+            }
         }
     }
 }

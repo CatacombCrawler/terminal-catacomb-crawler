@@ -194,6 +194,8 @@ class UI:
             return self.terminal.cyan(tile)
         elif tile == '<':  # Stairs up
             return self.terminal.cyan(tile)
+        elif tile == '*':  # Treasure chest
+            return self.terminal.magenta(tile)
         else:
             return tile
             
@@ -427,7 +429,8 @@ class UI:
             print("Your inventory is empty.")
         else:
             for i, item in enumerate(player.inventory):
-                print(f"{i + 1}. {item}")
+                quantity_text = f" x{item.quantity}" if getattr(item, 'quantity', 1) > 1 else ""
+                print(f"{i + 1}. {item}{quantity_text}")
                 
         print("\nPress any key to continue...")
         self.terminal.inkey()

@@ -2,11 +2,13 @@
 Game Engine - Core game loop and state management
 """
 
+import random
 import time
 from blessed import Terminal
 from .player import Player
 from .level import Level, DoorRoom
 from .ui import UI
+from .items.items import ItemManager
 from .monsters.monsters import MonsterManager as EnemyManager
 from .combat import CombatManager, COMBAT_ACTIONS
 from .character_creation import CharacterCreator
@@ -96,7 +98,8 @@ class GameEngine:
         self.enemy_manager = EnemyManager()
         
         # Generate initial level
-        self.level.generate()
+        self.level.generate(self.dungeon_level)
+        self.populate_chest_contents()
         
         # Place player in a valid starting position
         start_x, start_y = self.level.get_random_floor_position()
@@ -274,6 +277,9 @@ class GameEngine:
                 # Show warning and handle stairs down
                 self.handle_stairs_down()
                 return
+            elif current_tile == self.level.CHEST:
+                self.open_treasure_chest(player_x, player_y)
+                return
             
             # Also check adjacent tiles for interactables on the main level
             adjacent_positions = [
@@ -293,6 +299,9 @@ class GameEngine:
                     elif tile == self.level.STAIRS_DOWN:
                         # Show warning and handle stairs down
                         self.handle_stairs_down()
+                        return
+                    elif tile == self.level.CHEST:
+                        self.open_treasure_chest(x, y)
                         return
     
     def enter_door_room(self, door_x, door_y):
@@ -463,7 +472,8 @@ class GameEngine:
         self.in_door_room = False
         
         # Generate new level
-        self.level.generate()
+        self.level.generate(self.dungeon_level)
+        self.populate_chest_contents()
         
         # Place player in a new starting position
         start_x, start_y = self.level.get_random_floor_position()
@@ -862,7 +872,6 @@ class GameEngine:
             
     def spawn_initial_enemies(self):
         """Spawn initial enemies on the level"""
-        import random
         
         # Spawn 3-6 enemies randomly
         num_enemies = random.randint(3, 6)
@@ -881,6 +890,54 @@ class GameEngine:
                     break
                 attempts += 1
                 
+    def populate_chest_contents(self):
+        """Populate each treasure chest with item IDs."""
+        self.level.chests = {position: [] for position in self.level.chests}
+        available_potions = list(ItemManager.get_items_by_category('potions').keys())
+        if not available_potions:
+            return
+        for position in list(self.level.chests.keys()):
+            num_items = random.randint(2, min(3, len(available_potions)))
+            self.level.chests[position] = random.sample(available_potions, num_items)
+
+    def open_treasure_chest(self, x, y):
+        """Open a treasure chest and transfer loot to the player."""
+        chest_key = (x, y)
+        item_ids = self.level.chests.pop(chest_key, None)
+        if not item_ids:
+            return
+
+        self.level.tiles[y][x] = self.level.FLOOR
+
+        looted_items = {}
+        failed_items = []
+        for item_id in item_ids:
+            item = ItemManager.create_item(item_id)
+            if self.player.add_item(item):
+                looted_items[item.name] = looted_items.get(item.name, 0) + 1
+            else:
+                failed_items.append(item.name)
+
+        print(self.terminal.clear)
+        print(self.terminal.bold + "Congratulations! You found a treasure chest!" + self.terminal.normal)
+        print()
+        if looted_items:
+            print("Inside you found:")
+            for name, count in looted_items.items():
+                print(f"  - {name} x{count}")
+        else:
+            print("The chest was empty.")
+
+        if failed_items:
+            print()
+            print("Some items could not be added because your inventory is full:")
+            for name in failed_items:
+                print(f"  - {name}")
+
+        print()
+        print("Press any key to continue...")
+        self.terminal.inkey()
+
     def game_over(self):
         """Handle game over"""
         print(self.terminal.clear)

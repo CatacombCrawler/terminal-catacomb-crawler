@@ -12,6 +12,7 @@ class Level:
         self.height = height
         self.tiles = []
         self.rooms = []
+        self.chests = {}
         
         # Tile types
         self.WALL = '#'
@@ -19,8 +20,9 @@ class Level:
         self.DOOR = '+'
         self.STAIRS_DOWN = '>'
         self.STAIRS_UP = '<'
+        self.CHEST = '*'
         
-    def generate(self):
+    def generate(self, dungeon_level=1):
         """Generate a new dungeon level"""
         # Initialize with all walls
         self.tiles = [[self.WALL for _ in range(self.width)] 
@@ -37,6 +39,9 @@ class Level:
         
         # Add stairs (for future multi-level support)
         self.add_stairs()
+        
+        # Add treasure chests
+        self.add_chests(dungeon_level)
         
     def generate_rooms(self):
         """Generate random rooms"""
@@ -136,6 +141,18 @@ class Level:
             x, y = room.center()
             self.tiles[y][x] = self.STAIRS_DOWN
             
+    def add_chests(self, dungeon_level=1):
+        """Add treasure chests to the level"""
+        self.chests = {}
+        chest_count = 1 if dungeon_level == 1 else (1 if random.random() < 0.25 else 0)
+        for _ in range(chest_count):
+            position = self.get_random_floor_position()
+            if not position:
+                break
+            x, y = position
+            self.tiles[y][x] = self.CHEST
+            self.chests[(x, y)] = []
+    
     def is_walkable(self, x, y):
         """Check if a position is walkable"""
         if not (0 <= x < self.width and 0 <= y < self.height):
@@ -149,12 +166,12 @@ class Level:
         return self.WALL
         
     def get_random_floor_position(self):
-        """Get a random walkable position"""
+        """Get a random floor position"""
         attempts = 0
         while attempts < 100:
             x = random.randint(0, self.width - 1)
             y = random.randint(0, self.height - 1)
-            if self.is_walkable(x, y):
+            if self.tiles[y][x] == self.FLOOR:
                 return x, y
             attempts += 1
         
