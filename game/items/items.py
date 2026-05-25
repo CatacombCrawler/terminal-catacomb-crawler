@@ -80,6 +80,10 @@ class Item:
             player.heal(heal_amount)
             actual_heal = player.hp - old_hp
             return f"Healed for {actual_heal} HP!"
+        elif self.effect['type'] == 'exp':
+            exp_amount = self.effect['amount']
+            player.gain_exp(exp_amount)
+            return f"Gained {exp_amount} experience!"
             
         # Future: Add more effect types
         return False

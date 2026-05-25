@@ -482,6 +482,11 @@ class Player:
     # ---- inventory & equipment passthroughs ----
     def add_item(self, item):
         """Add item to inventory"""
+        if item.type == 'consumable':
+            for inv_item in self.inventory:
+                if inv_item.item_id == item.item_id and inv_item.type == item.type:
+                    inv_item.quantity += item.quantity
+                    return True
         if len(self.inventory) < self.max_inventory:
             self.inventory.append(item)
             return True
@@ -519,8 +524,11 @@ class Player:
         result = item.use_item(self)
         if result:
             if getattr(item, "type", None) == 'consumable':
-                self.remove_item(item)
-            return True, result
+                if item.quantity > 1:
+                    item.quantity -= 1
+                else:
+                    self.remove_item(item)
+            return True, f"You used {item.name}. {result}"
         return False, "Cannot use this item"
 
     # ---- public getters for UI/debug ----
